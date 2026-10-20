@@ -4,6 +4,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import healthRoutes from "./routes/health.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(
 );
 
 app.use(express.json({ limit: "10kb" }));
+app.use(cookieParser());
 
 app.use(
   rateLimit({
