@@ -1,6 +1,7 @@
 
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
+import jwt from "jsonwebtoken";
 
 export async function register(req, res) {
   try {
@@ -102,4 +103,140 @@ export async function register(req, res) {
       message: "Unable to create your account right now.",
     });
   }
+
 }
+
+export async function login(req, res) {
+  try {
+    const { email, password } = req.body ?? {};
+
+    if (
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      !email.trim() ||
+      !password
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required.",
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Include passwordHash because the schema excludes it by default.
+    const user = await User.findOne({
+      email: cleanEmail,
+    }).select("+passwordHash");
+
+    // Use the same message for unknown emails and wrong passwords.
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password.",
+      });
+    }
+
+    const passwordMatches = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!passwordMatches) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password.",
+      });
+    }
+
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret || secret.length < 32) {
+      console.error("JWT_SECRET is missing or too short.");
+
+      return res.status(500).json({
+        success: false,
+        message: "Authentication is not configured correctly.",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        sub: user._id.toString(),
+        role: user.role,
+      },
+      secret,
+      {
+        expiresIn: "15m",
+        issuer: "learncraft-api",
+        audience: "learncraft-client",
+      }
+    );
+
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res.cookie("learncraft_token", token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful.",
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to log in right now.",
+    });
+  }
+}
+
+
+export async function getMe(req, res) {
+  try {
+    const user = await User.findById(req.auth.userId);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User account no longer exists.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          createdAt: user.createdAt,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get current user error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to retrieve your account.",
+    });
+  }
+}
+
+
