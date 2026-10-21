@@ -1,7 +1,6 @@
-
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
-  BookOpen,
   Eye,
   EyeOff,
   GraduationCap,
@@ -16,31 +15,87 @@ import {
   ChartNoAxesColumnIncreasing,
   Sparkles,
 } from 'lucide-react'
+import { authApi } from '../services/api'
 import './Login.css'
 
 const roles = [
   { name: 'Student', icon: GraduationCap },
   { name: 'Teacher', icon: Users },
-  { name: 'Parent', icon: House },
+  
 ]
 
 const features = [
-  { label: <>Interactive<br />Lessons</>, icon: BookOpenText, color: 'purple' },
-  { label: <>AI Tutor<br />Support</>, icon: BrainCircuit, color: 'green' },
-  { label: <>Earn XP<br />& Badges</>, icon: Trophy, color: 'orange' },
-  { label: <>Track<br />Your Progress</>, icon: ChartNoAxesColumnIncreasing, color: 'pink' },
+  {
+    label: <>Interactive<br />Lessons</>,
+    icon: BookOpenText,
+    color: 'purple',
+  },
+  {
+    label: <>AI Tutor<br />Support</>,
+    icon: BrainCircuit,
+    color: 'green',
+  },
+  {
+    label: <>Earn XP<br />&amp; Badges</>,
+    icon: Trophy,
+    color: 'orange',
+  },
+  {
+    label: <>Track<br />Your Progress</>,
+    icon: ChartNoAxesColumnIncreasing,
+    color: 'pink',
+  },
 ]
 
 export default function Login() {
+  const navigate = useNavigate()
+
   const [role, setRole] = useState('Student')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-    alert('Login interface is ready. Authentication will be connected later.')
+    setError('')
+    setLoading(true)
+
+    try {
+      const result = await authApi.login({
+        email: email.trim(),
+        password,
+      })
+
+      if (!result.success) {
+        setError('Unable to sign in. Please try again.')
+        return
+      }
+
+      const loggedInUser = result.data?.user
+
+      // The backend currently supports student registration.
+      // Do not use the selected role tab to grant permissions.
+      if (
+        loggedInUser?.role &&
+        role.toLowerCase() !== loggedInUser.role
+      ) {
+        setError(
+          `This account is registered as ${loggedInUser.role}. Please select the matching account type.`
+        )
+        return
+      }
+
+      navigate('/dashboard')
+    } catch (err) {
+      setError(
+        err.message || 'Login failed. Please check your credentials.'
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -49,13 +104,19 @@ export default function Login() {
 
       <header className="login-header">
         <a className="brand" href="/" aria-label="LearnCraft home">
-          <span className="brand-icon"><Sparkles size={27} /></span>
-          <span><span className="brand-learn">Learn</span>Craft</span>
+          <span className="brand-icon">
+            <Sparkles size={27} />
+          </span>
+          <span>
+            <span className="brand-learn">Learn</span>Craft
+          </span>
         </a>
 
         <div className="header-account">
           <span>New to LearnCraft?</span>
-          <a href="/register" className="outline-button">Create Account</a>
+          <a href="/register" className="outline-button">
+            Create Account
+          </a>
         </div>
       </header>
 
@@ -91,10 +152,16 @@ export default function Login() {
                 <h2>Welcome Back</h2>
                 <p>Continue your learning journey</p>
               </div>
-              <div className="rocket-decoration" aria-hidden="true">🚀</div>
+              <div className="rocket-decoration" aria-hidden="true">
+                🚀
+              </div>
             </div>
 
-            <div className="role-tabs" role="tablist" aria-label="Account type">
+            <div
+              className="role-tabs"
+              role="tablist"
+              aria-label="Account type"
+            >
               {roles.map(({ name, icon: Icon }) => (
                 <button
                   key={name}
@@ -102,9 +169,15 @@ export default function Login() {
                   role="tab"
                   aria-selected={role === name}
                   className={`role-tab ${role === name ? 'active' : ''}`}
-                  onClick={() => setRole(name)}
+                  onClick={() => {
+                    setRole(name)
+                    setError('')
+                  }}
                 >
-                  <Icon size={23} fill={name === 'Student' ? 'currentColor' : 'none'} />
+                  <Icon
+                    size={23}
+                    fill={name === 'Student' ? 'currentColor' : 'none'}
+                  />
                   <span>{name}</span>
                 </button>
               ))}
@@ -141,7 +214,11 @@ export default function Login() {
                   onClick={() => setShowPassword((current) => !current)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff size={23} /> : <Eye size={23} />}
+                  {showPassword ? (
+                    <EyeOff size={23} />
+                  ) : (
+                    <Eye size={23} />
+                  )}
                 </button>
               </label>
 
@@ -150,24 +227,41 @@ export default function Login() {
                   <input
                     type="checkbox"
                     checked={rememberMe}
-                    onChange={(event) => setRememberMe(event.target.checked)}
+                    onChange={(event) =>
+                      setRememberMe(event.target.checked)
+                    }
                   />
                   <span>Remember me</span>
                 </label>
                 <a href="/forgot-password">Forgot password?</a>
               </div>
 
-              <button type="submit" className="sign-in-button">
-                Sign In <ArrowRight size={22} />
+              {error && (
+                <p className="auth-error" role="alert">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="sign-in-button"
+                disabled={loading}
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+                {!loading && <ArrowRight size={22} />}
               </button>
             </form>
 
-            <div className="separator"><span>or</span></div>
+            <div className="separator">
+              <span>or</span>
+            </div>
 
             <button
               type="button"
               className="social-button"
-              onClick={() => alert('Google sign-in will be integrated later.')}
+              onClick={() =>
+                alert('Google sign-in will be integrated later.')
+              }
             >
               <span className="google-mark">G</span>
               Continue with Google
@@ -176,17 +270,24 @@ export default function Login() {
             <button
               type="button"
               className="social-button"
-              onClick={() => alert('Microsoft sign-in will be integrated later.')}
+              onClick={() =>
+                alert('Microsoft sign-in will be integrated later.')
+              }
             >
               <span className="microsoft-mark">
-                <i /><i /><i /><i />
+                <i />
+                <i />
+                <i />
+                <i />
               </span>
               Continue with Microsoft
             </button>
 
             <p className="register-prompt">
               Don’t have an account?
-              <a href="/register">Create Account <ArrowRight size={18} /></a>
+              <a href="/register">
+                Create Account <ArrowRight size={18} />
+              </a>
             </p>
           </div>
         </section>
