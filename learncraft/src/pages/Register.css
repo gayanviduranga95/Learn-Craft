@@ -1,0 +1,142 @@
+
+/* Register page: reuse the exact visual theme from Login.css */
+
+.register-form-section {
+  align-items: center;
+  min-width: 0;
+}
+
+.register-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.register-form .input-wrap {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.register-select-wrap select {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.register-select-wrap select option {
+  color: #132447;
+  background: #fff;
+}
+
+.register-subject-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.register-field-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lc-text, #132447);
+}
+
+.register-subject-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.register-subject-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border: 1px solid var(--lc-border, #dce6f5);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--lc-text, #132447);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.register-subject-option.selected {
+  border-color: var(--lc-blue, #087bff);
+  background: rgba(8, 123, 255, 0.09);
+}
+
+.register-subject-option input {
+  accent-color: var(--lc-blue, #087bff);
+}
+
+.register-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--lc-muted, #637493);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.register-terms input {
+  flex-shrink: 0;
+  margin-top: 4px;
+  accent-color: var(--lc-blue, #087bff);
+}
+
+.register-terms a {
+  color: var(--lc-blue, #087bff);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-terms a:hover {
+  text-decoration: underline;
+}
+
+.register-form .sign-in-button {
+  width: 100%;
+}
+
+.register-card .register-prompt {
+  margin-top: 20px;
+}
+
+@media (max-width: 1050px) {
+  .register-card {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 760px) {
+  .register-form-section {
+    width: 100%;
+  }
+
+  .register-card {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .register-subject-options {
+    gap: 7px;
+  }
+}
