@@ -9,7 +9,7 @@ import {
   Zap,
   GraduationCap,
 } from 'lucide-react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 export default function Sidebar({ totalLessonsDone = 0, gamificationData = null }) {
@@ -46,7 +46,7 @@ export default function Sidebar({ totalLessonsDone = 0, gamificationData = null 
 
   return (
     <aside className="lc-sidebar">
-      <a className="lc-brand" href="/dashboard">
+      <Link className="lc-brand" to="/dashboard">
         <span className="lc-brand-icon">
           <Sparkles size={25} />
         </span>
@@ -54,7 +54,7 @@ export default function Sidebar({ totalLessonsDone = 0, gamificationData = null 
           <strong>Learn<span>Craft</span></strong>
           <small>LEARN • GROW • SHINE</small>
         </span>
-      </a>
+      </Link>
 
       <div className="lc-sidebar-label">MENU</div>
 

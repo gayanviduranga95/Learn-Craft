@@ -265,7 +265,7 @@ export default function GoogleConfigModal({
                 </a>
               </li>
               <li>
-                Add JavaScript Origin: <code style={{ color: "#fcd34d", background: "rgba(0,0,0,0.4)", padding: "1px 5px", borderRadius: "4px" }}>http://localhost:5173</code>
+                Add JavaScript Origin: <code style={{ color: "#fcd34d", background: "rgba(0,0,0,0.4)", padding: "1px 5px", borderRadius: "4px" }}>http://localhost:5173</code> (and your Vercel URL in production)
               </li>
               <li>
                 Paste your Client ID into both files:

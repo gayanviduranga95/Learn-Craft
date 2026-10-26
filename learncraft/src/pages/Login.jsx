@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   Eye,
   EyeOff,
@@ -150,20 +150,20 @@ export default function Login() {
       <div className="login-overlay" />
 
       <header className="login-header">
-        <a className="brand" href="/" aria-label="LearnCraft home">
+        <Link className="brand" to="/" aria-label="LearnCraft home">
           <span className="brand-icon">
             <Sparkles size={27} />
           </span>
           <span>
             <span className="brand-learn">Learn</span>Craft
           </span>
-        </a>
+        </Link>
 
         <div className="header-account">
           <span>New to LearnCraft?</span>
-          <a href="/register" className="outline-button">
+          <Link to="/register" className="outline-button">
             Create Account
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -280,7 +280,14 @@ export default function Login() {
                   />
                   <span>Remember me</span>
                 </label>
-                <a href="/forgot-password">Forgot password?</a>
+                <button
+                  type="button"
+                  className="link-button"
+                  style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--brand-primary, #6366f1)', cursor: 'pointer', textDecoration: 'none' }}
+                  onClick={() => alert('Password reset is not yet configured. Please contact your administrator.')}
+                >
+                  Forgot password?
+                </button>
               </div>
 
               {error && (
@@ -328,9 +335,9 @@ export default function Login() {
 
             <p className="register-prompt">
               Don’t have an account?
-              <a href="/register">
+              <Link to="/register">
                 Create Account <ArrowRight size={18} />
-              </a>
+              </Link>
             </p>
           </div>
         </section>

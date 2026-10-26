@@ -1,6 +1,5 @@
-
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   Eye,
   EyeOff,
@@ -195,20 +194,20 @@ export default function Register() {
       <div className="login-overlay" />
 
       <header className="login-header">
-        <a className="brand" href="/" aria-label="LearnCraft home">
+        <Link className="brand" to="/" aria-label="LearnCraft home">
           <span className="brand-icon">
             <Sparkles size={27} />
           </span>
           <span>
             <span className="brand-learn">Learn</span>Craft
           </span>
-        </a>
+        </Link>
 
         <div className="header-account">
           <span>Already have an account?</span>
-          <a href="/login" className="outline-button">
+          <Link to="/login" className="outline-button">
             Sign In
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -417,8 +416,22 @@ export default function Register() {
                   }
                 />
                 <span>
-                  I agree to the <a href="/terms">Terms of Service</a> and{' '}
-                  <a href="/privacy">Privacy Policy</a>.
+                  I agree to the{' '}
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--brand-primary, #6366f1)', cursor: 'pointer', textDecoration: 'underline' }}
+                    onClick={() => alert('LearnCraft Terms of Service: By signing up, you agree to our standard academic learning guidelines and privacy practices.')}
+                  >
+                    Terms of Service
+                  </button>{' '}
+                  and{' '}
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--brand-primary, #6366f1)', cursor: 'pointer', textDecoration: 'underline' }}
+                    onClick={() => alert('LearnCraft Privacy Policy: Your data and learning progress are securely stored and protected.')}
+                  >
+                    Privacy Policy
+                  </button>.
                 </span>
               </label>
 
@@ -451,9 +464,9 @@ export default function Register() {
 
             <p className="register-prompt">
               Already have an account?
-              <a href="/login">
+              <Link to="/login">
                 Sign In <ArrowRight size={18} />
-              </a>
+              </Link>
             </p>
           </div>
         </section>

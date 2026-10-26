@@ -28,4 +28,19 @@ router.post("/google", authLimiter, googleAuth);
 router.get("/me", requireAuth, getMe);
 router.post("/logout", logout);
 
+// Browser GET helper: returns descriptive 405 Method Not Allowed instead of 404
+router.get("/login", (req, res) => {
+  res.status(405).json({
+    success: false,
+    message: "HTTP GET is not supported for /api/auth/login. Please send an HTTP POST request with JSON { email, password }.",
+  });
+});
+
+router.get("/register", (req, res) => {
+  res.status(405).json({
+    success: false,
+    message: "HTTP GET is not supported for /api/auth/register. Please send an HTTP POST request with JSON { name, email, password, role }.",
+  });
+});
+
 export default router;
