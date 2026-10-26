@@ -44,14 +44,14 @@ export function AuthProvider({ children }) {
     return res;
   };
 
-  const googleLogin = async ({ idToken, linkAccountPassword }) => {
-    setError(null);
-    const res = await authApi.google({ idToken, linkAccountPassword });
+  const googleLogin = async ({ idToken, linkAccountPassword, role }) => {
+    setError(null)
+    const res = await authApi.google({ idToken, linkAccountPassword, role })
     if (res?.data?.user) {
-      setUser(res.data.user);
+      setUser(res.data.user)
     }
-    return res;
-  };
+    return res
+  }
 
   const register = async (userData) => {
     setError(null);
