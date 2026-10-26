@@ -657,34 +657,6 @@
   width: 100%;
 }
 
-.google-btn-container:hover .social-button {
-  border-color: #a7c6f5;
-  background: rgba(255, 255, 255, 0.91);
-  transform: translateY(-1px);
-}
-
-.google-gis-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 48px;
-  overflow: visible;
-}
-
-.google-gis-container > div {
-  width: 100%;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-}
-
-.google-gis-container iframe {
-  max-width: 100% !important;
-  border: none !important;
-  outline: none !important;
-}
-
 .google-demo-link {
   margin-top: 5px;
   font-size: 11px;
@@ -700,23 +672,6 @@
 
 .google-demo-link:hover {
   color: #0284c7;
-}
-
-.google-mark {
-  font-family: Arial, sans-serif;
-  font-size: 23px;
-  font-weight: 900;
-  background: conic-gradient(
-    from -45deg,
-    #4285f4 0deg 90deg,
-    #34a853 90deg 180deg,
-    #fbbc05 180deg 250deg,
-    #ea4335 250deg 320deg,
-    #4285f4 320deg
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
 }
 
 .microsoft-mark {
