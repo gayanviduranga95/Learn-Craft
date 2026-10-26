@@ -396,13 +396,18 @@ export async function googleAuth(req, res) {
     }
 
     // 3. Brand new user registration via Google
-    // Enforce safe default role: ALWAYS "student", client role is ignored
+    // Accept role from client but STRICTLY whitelist — only "student" or "instructor" allowed.
+    // Existing accounts always keep their stored role (handled above).
+    const allowedRoles = ["student", "instructor"];
+    const requestedRole = typeof req.body?.role === "string" ? req.body.role.trim().toLowerCase() : "";
+    const assignedRole = allowedRoles.includes(requestedRole) ? requestedRole : "student";
+
     user = await User.create({
       name: (name || cleanEmail.split("@")[0]).trim(),
       email: cleanEmail,
       googleId: sub,
       authProvider: "google",
-      role: "student",
+      role: assignedRole,
       avatar: picture || "",
     });
 

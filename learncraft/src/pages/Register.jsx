@@ -77,7 +77,9 @@ export default function Register() {
     setError('')
     setGoogleLoading(true)
     try {
-      const result = await googleLogin({ idToken })
+      // Pass the selected role tab so new accounts are created with the right role
+      const requestedRole = role === 'Teacher' ? 'instructor' : 'student'
+      const result = await googleLogin({ idToken, role: requestedRole })
       const loggedInUser = result.data?.user
       if (loggedInUser?.role === 'instructor' || loggedInUser?.role === 'admin') {
         navigate('/instructor')
