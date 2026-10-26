@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import GoogleConfigModal from "./GoogleConfigModal";
+import {
+  loadGsiScript,
+  registerGsiCallback,
+  renderGsiButton,
+} from "../../services/googleIdentity";
 
 export default function GoogleSignInButton({
   onSuccess,
@@ -8,103 +13,107 @@ export default function GoogleSignInButton({
   text = "continue_with",
 }) {
   const gisContainerRef = useRef(null);
-  const [scriptLoaded, setScriptLoaded] = useState(() => Boolean(typeof window !== "undefined" && window.google?.accounts?.id));
+  const [gisReady, setGisReady] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
+  // Keep stable refs to callbacks so changing props don't trigger re-initialization
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
   useEffect(() => {
-    if (typeof window === "undefined" || window.google?.accounts?.id) {
-      return;
-    }
-
-    const existingScript = document.getElementById("google-gsi-client");
-    if (existingScript) {
-      const handleLoad = () => setScriptLoaded(true);
-      existingScript.addEventListener("load", handleLoad);
-      return () => existingScript.removeEventListener("load", handleLoad);
-    }
-
-    const script = document.createElement("script");
-    script.id = "google-gsi-client";
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setScriptLoaded(true);
-    document.head.appendChild(script);
-  }, []);
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+  });
 
   useEffect(() => {
-    if (!scriptLoaded || !gisContainerRef.current || !clientId) return;
+    let isCancelled = false;
 
-    try {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: (response) => {
-          if (response?.credential) {
-            onSuccess(response.credential);
-          } else if (onError) {
-            onError("No credential returned by Google.");
-          }
-        },
-        auto_select: false,
-      });
-
-      gisContainerRef.current.innerHTML = "";
-
-      window.google.accounts.id.renderButton(gisContainerRef.current, {
-        theme: "outline",
-        size: "large",
-        shape: "pill",
-        text: text === "signup_with" ? "signup_with" : "continue_with",
-        width: 380,
-      });
-    } catch (err) {
-      console.warn("Google Sign-In initialization error:", err);
-      if (onError) onError(err.message || "Could not initialize Google Sign-In.");
-    }
-  }, [scriptLoaded, clientId, onSuccess, onError, text]);
-
-  function handleButtonClick() {
     if (!clientId) {
-      setShowConfigModal(true);
+      setGisReady(false);
       return;
     }
 
-    if (window.google?.accounts?.id) {
-      window.google.accounts.id.prompt();
-    } else {
-      setShowConfigModal(true);
-    }
-  }
+    loadGsiScript()
+      .then(() => {
+        if (isCancelled || !gisContainerRef.current) return;
+
+        // Register callback with the singleton GSI lifecycle manager
+        // (google.accounts.id.initialize is called strictly once)
+        registerGsiCallback(
+          clientId,
+          (credential) => {
+            onSuccessRef.current?.(credential);
+          },
+          (errMsg) => {
+            onErrorRef.current?.(errMsg);
+          }
+        );
+
+        // Render official button without clickjacking-triggering CSS hacks
+        const rendered = renderGsiButton(gisContainerRef.current, {
+          text: text === "signup_with" ? "signup_with" : "continue_with",
+          width: 380,
+        });
+
+        if (rendered && !isCancelled) {
+          setGisReady(true);
+        }
+      })
+      .catch((err) => {
+        console.warn("Google Sign-In load error:", err.message);
+        if (!isCancelled) {
+          setGisReady(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [clientId, text]);
 
   function handleSelectDemo(account) {
     setShowConfigModal(false);
     const token = "test_google_token:" + JSON.stringify(account);
-    onSuccess(token);
+    onSuccessRef.current?.(token);
   }
 
   return (
     <div className="google-btn-container">
-      {/* 1. Exactly the original LearnCraft .social-button matching the Microsoft button */}
+      {/* 1. Official Google Identity Services button container */}
+      <div
+        ref={gisContainerRef}
+        className="google-gis-container"
+        style={{ display: gisReady && !loading ? "flex" : "none" }}
+      />
+
+      {/* 2. Fallback / Loading LearnCraft social button */}
+      {(!gisReady || loading) && (
+        <button
+          type="button"
+          className="social-button"
+          disabled={loading}
+          onClick={() => setShowConfigModal(true)}
+        >
+          <span className="google-mark">G</span>
+          <span>
+            {loading
+              ? "Signing in..."
+              : text === "signup_with"
+              ? "Sign up with Google"
+              : "Continue with Google"}
+          </span>
+        </button>
+      )}
+
+      {/* 3. Demo / Config helper for testing without live Google credentials */}
       <button
         type="button"
-        className="social-button"
-        disabled={loading}
-        onClick={handleButtonClick}
+        className="google-demo-link"
+        onClick={() => setShowConfigModal(true)}
       >
-        <span className="google-mark">G</span>
-        <span>{loading ? "Signing in..." : "Continue with Google"}</span>
+        Google setup &amp; demo accounts
       </button>
-
-      {/* 2. Transparent Google GIS layer over the button for direct Google popup when clientId is present */}
-      {clientId && scriptLoaded && (
-        <div
-          ref={gisContainerRef}
-          className="google-gis-layer"
-          title="Continue with Google"
-        />
-      )}
 
       <GoogleConfigModal
         isOpen={showConfigModal}
