@@ -6,6 +6,9 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import InstructorDashboard from './pages/InstructorDashboard'
 import CourseLessons from './components/dashboard/CourseLessons'
+import Arcade from './pages/Arcade'
+import Leaderboard from './pages/Leaderboard'
+import Shop from './pages/Shop'
 import './App.css'
 
 function App() {
@@ -30,6 +33,30 @@ function App() {
           element={
             <ProtectedRoute>
               <CourseLessons />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/arcade"
+          element={
+            <ProtectedRoute>
+              <Arcade />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <Leaderboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shop"
+          element={
+            <ProtectedRoute>
+              <Shop />
             </ProtectedRoute>
           }
         />

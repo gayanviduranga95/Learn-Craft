@@ -8,10 +8,12 @@ import {
   X,
   LogOut,
   GraduationCap,
+  Coins,
+  Flame,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
-export default function DashboardHeader() {
+export default function DashboardHeader({ coins = 0, streak = 0, equippedFrame = 'default' }) {
   const navigate = useNavigate()
   const { user, logout, isInstructor } = useAuth()
 
@@ -51,6 +53,54 @@ export default function DashboardHeader() {
       </div>
 
       <div className="lc-header-actions">
+        {/* Spendable Coins counter */}
+        <button
+          type="button"
+          className="lc-header-pill"
+          onClick={() => navigate('/shop')}
+          title="Game Coins balance. Click to visit Reward Shop"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#fffbeb',
+            border: '1px solid #fde68a',
+            color: '#b45309',
+            padding: '6px 12px',
+            borderRadius: '20px',
+            fontWeight: '700',
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'background 0.2s',
+          }}
+        >
+          <Coins size={16} />
+          <span>{coins.toLocaleString()}</span>
+        </button>
+
+        {/* Learning Streak flame */}
+        {streak > 0 && (
+          <div
+            className="lc-header-pill"
+            title={`${streak}-day learning streak!`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#dc2626',
+              padding: '6px 10px',
+              borderRadius: '20px',
+              fontWeight: '700',
+              fontSize: '0.85rem',
+            }}
+          >
+            <Flame size={16} />
+            <span>{streak}</span>
+          </div>
+        )}
+
         {isInstructor && (
           <button
             type="button"

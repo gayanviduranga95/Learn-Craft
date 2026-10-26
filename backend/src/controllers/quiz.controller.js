@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Quiz from "../models/quiz.model.js";
 import QuizAttempt from "../models/quiz-attempt.model.js";
 import Course from "../models/course.model.js";
+import { awardReward } from "../services/reward.service.js";
+import { REWARD_CONFIG } from "../config/gamification.config.js";
 
 export async function getCourseQuizzes(req, res, next) {
   try {
@@ -204,6 +206,31 @@ export async function submitQuiz(req, res, next) {
       passed,
     });
 
+    let quizReward = null;
+    let perfectBonus = null;
+
+    if (passed) {
+      quizReward = await awardReward({
+        studentId: req.auth.userId,
+        eventType: "quiz_pass",
+        targetId: String(quiz._id),
+        xp: REWARD_CONFIG.QUIZ_PASS.xp,
+        coins: REWARD_CONFIG.QUIZ_PASS.coins,
+        description: `Passed quiz: ${quiz.title}`,
+      });
+
+      if (percentage === 100) {
+        perfectBonus = await awardReward({
+          studentId: req.auth.userId,
+          eventType: "quiz_perfect",
+          targetId: String(quiz._id),
+          xp: REWARD_CONFIG.QUIZ_PERFECT_BONUS.xp,
+          coins: REWARD_CONFIG.QUIZ_PERFECT_BONUS.coins,
+          description: `Perfect 100% score bonus: ${quiz.title}`,
+        });
+      }
+    }
+
     res.json({
       message: passed ? "Congratulations! You passed the quiz." : "Keep studying and try again!",
       result: {
@@ -215,6 +242,8 @@ export async function submitQuiz(req, res, next) {
         passed,
         evaluatedAnswers,
         attemptedAt: attempt.attemptedAt,
+        quizReward,
+        perfectBonus,
       },
     });
   } catch (error) {

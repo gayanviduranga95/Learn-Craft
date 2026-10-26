@@ -10,6 +10,10 @@ import lessonRoutes from "./routes/lesson.routes.js";
 import quizRoutes from "./routes/quiz.routes.js";
 import certificateRoutes from "./routes/certificate.routes.js";
 import aiRoutes from "./routes/ai.routes.js";
+import gamificationRoutes from "./routes/gamification.routes.js";
+import leaderboardRoutes from "./routes/leaderboard.routes.js";
+import arcadeRoutes from "./routes/arcade.routes.js";
+import shopRoutes from "./routes/shop.routes.js";
 
 const app = express();
 
@@ -50,6 +54,10 @@ app.use("/api/lessons", lessonRoutes);
 app.use("/api/quizzes", quizRoutes);
 app.use("/api/certificates", certificateRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/gamification", gamificationRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/arcade", arcadeRoutes);
+app.use("/api/shop", shopRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

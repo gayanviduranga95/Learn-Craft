@@ -12,13 +12,16 @@ import RecentAchievements from '../components/dashboard/RecentAchievements'
 import RecommendedLessons from '../components/dashboard/RecommendedLessons'
 import AITutorWidget from '../components/ai-tutor/AITutorWidget'
 import QuizModal from '../components/quiz/QuizModal'
-import { courseApi, certificateApi } from '../services/api'
+import RewardToast from '../components/common/RewardToast'
+import { courseApi, certificateApi, gamificationApi } from '../services/api'
 import '../styles/dashboard.css'
 
 export default function Dashboard() {
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [courseRefreshKey, setCourseRefreshKey] = useState(0)
   const [courses, setCourses] = useState([])
+  const [gamification, setGamification] = useState(null)
+  const [rewardToast, setRewardToast] = useState(null)
   const [showQuizModal, setShowQuizModal] = useState(false)
   const [quizCourseId, setQuizCourseId] = useState(null)
   const [certMessage, setCertMessage] = useState('')
@@ -26,18 +29,23 @@ export default function Dashboard() {
   useEffect(() => {
     let active = true
 
-    async function fetchStats() {
+    async function fetchData() {
       try {
-        const data = await courseApi.getCourses()
-        if (active && Array.isArray(data)) {
-          setCourses(data)
+        const [courseData, profileRes] = await Promise.all([
+          courseApi.getCourses().catch(() => []),
+          gamificationApi.getProfile().catch(() => null),
+        ])
+
+        if (active) {
+          if (Array.isArray(courseData)) setCourses(courseData)
+          if (profileRes?.success) setGamification(profileRes.data)
         }
       } catch (err) {
-        console.warn('Dashboard failed to load course stats:', err)
+        console.warn('Dashboard failed to load data:', err)
       }
     }
 
-    fetchStats()
+    fetchData()
 
     return () => {
       active = false
@@ -52,8 +60,24 @@ export default function Dashboard() {
     setSelectedCourse(null)
   }, [])
 
-  const handleProgressSaved = useCallback(() => {
+  const handleProgressSaved = useCallback((res) => {
     setCourseRefreshKey((current) => current + 1)
+
+    if (res?.reward?.awarded) {
+      setRewardToast({
+        title: 'Lesson Completed!',
+        description: res.reward.description,
+        xpAwarded: res.reward.xpAwarded,
+        coinsAwarded: res.reward.coinsAwarded,
+      })
+    } else if (res?.courseReward?.awarded) {
+      setRewardToast({
+        title: 'Course Mastered!',
+        description: res.courseReward.description,
+        xpAwarded: res.courseReward.xpAwarded,
+        coinsAwarded: res.courseReward.coinsAwarded,
+      })
+    }
   }, [])
 
   const totalLessonsDone = courses.reduce(
@@ -104,10 +128,17 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
-      <Sidebar totalLessonsDone={totalLessonsDone} />
+      <Sidebar
+        gamificationData={gamification}
+        totalLessonsDone={totalLessonsDone}
+      />
 
       <main className="dashboard-main">
-        <DashboardHeader />
+        <DashboardHeader
+          coins={gamification?.coins || 0}
+          streak={gamification?.streak?.current || 0}
+          equippedFrame={gamification?.equippedFrame}
+        />
 
         <div className="dashboard-content">
           <WelcomeBanner />
@@ -122,6 +153,9 @@ export default function Dashboard() {
             completedLessons={totalLessonsDone}
             totalCourses={courses.length}
             completedCourses={completedCoursesCount}
+            lifetimeXp={gamification?.lifetimeXp || 0}
+            coins={gamification?.coins || 0}
+            level={gamification?.level || 1}
           />
 
           <div className="dashboard-columns">
@@ -150,10 +184,11 @@ export default function Dashboard() {
             </div>
 
             <aside className="dashboard-secondary">
-              <LearningStreak />
+              <LearningStreak streak={gamification?.streak} />
               <RecentAchievements
                 completedLessons={totalLessonsDone}
                 completedCourses={completedCoursesCount}
+                achievements={gamification?.achievements || []}
               />
               <RecommendedLessons />
             </aside>
@@ -166,7 +201,15 @@ export default function Dashboard() {
       <QuizModal
         courseId={quizCourseId}
         isOpen={showQuizModal}
-        onClose={() => setShowQuizModal(false)}
+        onClose={() => {
+          setShowQuizModal(false)
+          setCourseRefreshKey((c) => c + 1)
+        }}
+      />
+
+      <RewardToast
+        reward={rewardToast}
+        onClose={() => setRewardToast(null)}
       />
     </div>
   )

@@ -12,6 +12,12 @@ import User from "../src/models/user.model.js";
 import Course from "../src/models/course.model.js";
 import Lesson from "../src/models/lesson.model.js";
 import Quiz from "../src/models/quiz.model.js";
+import XPTransaction from "../src/models/xp-transaction.model.js";
+import CoinTransaction from "../src/models/coin-transaction.model.js";
+import UserAchievement from "../src/models/achievement.model.js";
+import GameSession from "../src/models/game-session.model.js";
+import UserInventory from "../src/models/shop.model.js";
+import { awardReward } from "../src/services/reward.service.js";
 import bcrypt from "bcrypt";
 
 let server;
@@ -489,9 +495,307 @@ async function runTests() {
     const linkedUserInDb = await User.findOne({ email: existingLocalEmail });
     assert(linkedUserInDb?.googleId === `google_instructor_sub_${testStamp}`, "Google subject ID safely associated with existing MongoDB document");
 
+    // ==========================================
+    // 13. Gamification Engine: XP, Levels, Arcade & Shop
+    // ==========================================
+    console.log("\n[13] Gamification Engine: XP, Levels, Arcade & Shop");
+
+    const studentUser = await User.findOne({ email: studentEmail });
+
+    // 13.1 Gamification Profile
+    const profileRes = await request("/api/gamification/profile", {
+      headers: { Cookie: studentCookie },
+    });
+    assert(profileRes.status === 200, "Gamification profile endpoint returns 200 OK");
+    assert(typeof profileRes.data?.data?.level === "number", "Profile contains numeric level");
+    assert(typeof profileRes.data?.data?.coins === "number", "Profile contains Game Coins balance");
+    assert(Array.isArray(profileRes.data?.data?.achievements), "Profile contains achievements list");
+
+    // 13.2 Verified Lesson Completion Awards XP Once
+    const createLesson2Res = await request(`/api/lessons/courses/${createdCourseId}`, {
+      method: "POST",
+      headers: { Cookie: instructorCookie },
+      body: JSON.stringify({
+        title: "Advanced Gamification Patterns",
+        description: "Deep dive into reward ledgers",
+        content: "Detailed reading on XP and ledgers.",
+        durationMinutes: 20,
+      }),
+    });
+    const lesson2Id = createLesson2Res.data?.lesson?.id;
+
+    const lessonCompletionRes = await request(
+      `/api/lessons/courses/${createdCourseId}/lessons/${lesson2Id}/complete`,
+      {
+        method: "POST",
+        headers: { Cookie: studentCookie },
+      }
+    );
+    assert(lessonCompletionRes.status === 200, "Lesson complete returns 200 OK");
+    assert(
+      lessonCompletionRes.data?.reward?.awarded === true &&
+        lessonCompletionRes.data?.reward?.xpAwarded === 20,
+      "Verified lesson completion awards 20 XP"
+    );
+
+    // 13.3 Repeated Lesson Completion Does Not Award Duplicate XP
+    const repeatLessonRes = await request(
+      `/api/lessons/courses/${createdCourseId}/lessons/${lesson2Id}/complete`,
+      {
+        method: "POST",
+        headers: { Cookie: studentCookie },
+      }
+    );
+    assert(repeatLessonRes.status === 200, "Repeat lesson complete returns 200 OK");
+    assert(
+      repeatLessonRes.data?.reward === null,
+      "Repeated lesson completion does not award duplicate XP"
+    );
+
+    // 13.4 Concurrent Reward Requests Idempotency Protection
+    const testTargetId = `concurrent_test_${testStamp}`;
+    const [cRes1, cRes2] = await Promise.all([
+      awardReward({
+        studentId: studentUser._id,
+        eventType: "lesson_complete",
+        targetId: testTargetId,
+        xp: 20,
+        coins: 5,
+        description: "Concurrent test 1",
+      }),
+      awardReward({
+        studentId: studentUser._id,
+        eventType: "lesson_complete",
+        targetId: testTargetId,
+        xp: 20,
+        coins: 5,
+        description: "Concurrent test 2",
+      }),
+    ]);
+    const awards = [cRes1.awarded, cRes2.awarded];
+    assert(
+      awards.filter(Boolean).length === 1,
+      "Concurrent reward requests with identical key cannot duplicate rewards"
+    );
+
+    // 13.5 Quiz Passing and Perfect Score Bonus Rewards
+    // Duplicate submission of already-passed quiz does not re-award XP
+    const repeatQuizSubmitRes = await request(`/api/quizzes/${quizId}/submit`, {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        answers: [
+          { questionIndex: 0, selectedOptionIndex: 1 },
+          { questionIndex: 1, selectedOptionIndex: 0 },
+        ],
+      }),
+    });
+    assert(
+      repeatQuizSubmitRes.data?.result?.quizReward?.awarded === false,
+      "Duplicate quiz submission does not award duplicate XP (idempotency enforced)"
+    );
+
+    // Create a new quiz to test first-time pass & 100% perfect bonus rewards
+    const createQuiz2Res = await request("/api/quizzes", {
+      method: "POST",
+      headers: { Cookie: instructorCookie },
+      body: JSON.stringify({
+        courseId: createdCourseId,
+        title: "Gamification Architecture Check",
+        description: "Test reward engine understanding",
+        passingScorePercentage: 50,
+        questions: [
+          {
+            questionText: "What distinguishes Lifetime XP from Game Coins?",
+            options: ["Coins determine level, XP is spent", "XP determines level, Coins are spent", "They are identical"],
+            correctOptionIndex: 1,
+            explanation: "Lifetime XP tracks level and rank, whereas Game Coins are spent in the shop.",
+          },
+        ],
+      }),
+    });
+    const quiz2Id = createQuiz2Res.data?.quiz?.id;
+
+    const quiz2SubmitRes = await request(`/api/quizzes/${quiz2Id}/submit`, {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        answers: [{ questionIndex: 0, selectedOptionIndex: 1 }],
+      }),
+    });
+    assert(quiz2SubmitRes.status === 200, "Quiz 2 submit returns 200 OK");
+    assert(
+      quiz2SubmitRes.data?.result?.quizReward?.awarded === true &&
+        quiz2SubmitRes.data?.result?.quizReward?.xpAwarded === 50,
+      "Passing new quiz awards 50 XP"
+    );
+    assert(
+      quiz2SubmitRes.data?.result?.perfectBonus?.awarded === true &&
+        quiz2SubmitRes.data?.result?.perfectBonus?.xpAwarded === 20,
+      "100% perfect quiz score awards 20 bonus XP"
+    );
+
+    // 13.6 Client Cannot Modify XP
+    const fakeXpAttemptRes = await request("/api/gamification/profile", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({ xp: 999999, coins: 888888 }),
+    });
+    // POST /api/gamification/profile does not exist or rejects
+    assert(
+      fakeXpAttemptRes.status === 404 || fakeXpAttemptRes.status === 405,
+      "XP cannot be modified by client requests"
+    );
+
+    // 13.7 Arcade Game: Quiz Rush (Server-side validation)
+    const quizRushStartRes = await request("/api/arcade/quiz-rush/start?difficulty=easy", {
+      headers: { Cookie: studentCookie },
+    });
+    assert(quizRushStartRes.status === 200, "Quiz Rush start returns 200 OK");
+    assert(
+      Array.isArray(quizRushStartRes.data?.questions) &&
+        quizRushStartRes.data.questions.length > 0,
+      "Quiz Rush returns questions"
+    );
+    assert(
+      quizRushStartRes.data.questions[0].correctOptionIndex === undefined,
+      "Quiz Rush hides correct answers from client to prevent tampering"
+    );
+
+    const quizRushSessionId = quizRushStartRes.data.sessionId;
+    const quizRushSubmitRes = await request("/api/arcade/quiz-rush/submit", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        sessionId: quizRushSessionId,
+        answers: quizRushStartRes.data.questions.map((q) => ({
+          index: q.index,
+          selectedOptionIndex: 0,
+        })),
+        timeElapsedSeconds: 30,
+      }),
+    });
+    assert(quizRushSubmitRes.status === 200, "Quiz Rush submit returns 200 OK");
+    assert(
+      typeof quizRushSubmitRes.data?.result?.score === "number",
+      "Quiz Rush score is calculated and verified server-side"
+    );
+
+    // 13.8 Arcade Game: Memory Match
+    const memoryMatchStartRes = await request("/api/arcade/memory-match/start?difficulty=easy", {
+      headers: { Cookie: studentCookie },
+    });
+    assert(memoryMatchStartRes.status === 200, "Memory Match start returns 200 OK");
+    assert(
+      Array.isArray(memoryMatchStartRes.data?.cards) && memoryMatchStartRes.data.cards.length === 12,
+      "Memory Match generates 12 cards for easy difficulty"
+    );
+
+    // Submitting with impossible bot time (<6s) rejected
+    const botMemorySubmit = await request("/api/arcade/memory-match/submit", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        sessionId: memoryMatchStartRes.data.sessionId,
+        moves: 6,
+        timeSeconds: 2, // Implausible bot time
+      }),
+    });
+    assert(botMemorySubmit.status === 400, "Memory Match rejects implausible bot completion times");
+
+    const validMemorySubmit = await request("/api/arcade/memory-match/submit", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        sessionId: memoryMatchStartRes.data.sessionId,
+        moves: 12,
+        timeSeconds: 28,
+      }),
+    });
+    assert(validMemorySubmit.status === 200, "Valid Memory Match completion awards reward");
+
+    // 13.9 Reward Shop: Catalog and Negative Balance Prevention
+    const shopCatalogRes = await request("/api/shop/items", {
+      headers: { Cookie: studentCookie },
+    });
+    assert(shopCatalogRes.status === 200, "Shop catalog returns 200 OK");
+    assert(Array.isArray(shopCatalogRes.data?.catalog), "Shop returns cosmetic items");
+
+    // Attempting purchase with insufficient coins (e.g. 9999 coins)
+    const expensivePurchaseRes = await request("/api/shop/buy", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({ itemId: "frame_cosmic_nebula" }), // 150 coins
+    });
+    // If student has less than 150 coins, this rejects. Let's verify no negative balance can occur
+    const updatedStudentAfterShop = await User.findById(studentUser._id);
+    assert(
+      updatedStudentAfterShop.coins >= 0,
+      "Coin balance cannot become negative under any purchase attempt"
+    );
+
+    // Grant student enough coins for 1 purchase to test atomic deduction & duplicate protection
+    await User.findByIdAndUpdate(studentUser._id, { $set: { coins: 100 } });
+    const affordableBuyRes = await request("/api/shop/buy", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({ itemId: "frame_neon_cyan" }), // 50 coins
+    });
+    assert(affordableBuyRes.status === 200, "Purchasing affordable cosmetic item succeeds");
+    assert(affordableBuyRes.data?.remainingCoins === 50, "Coins deducted atomically");
+
+    const duplicateBuyRes = await request("/api/shop/buy", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({ itemId: "frame_neon_cyan" }),
+    });
+    assert(duplicateBuyRes.status === 400, "Duplicate cosmetic purchase rejected (400 Bad Request)");
+
+    // 13.10 Equip Cosmetic Item
+    const equipRes = await request("/api/shop/equip", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({ itemId: "frame_neon_cyan", itemType: "frame" }),
+    });
+    assert(equipRes.status === 200, "Equipping owned cosmetic item succeeds");
+
+    const unownedEquipRes = await request("/api/shop/equip", {
+      method: "POST",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({ itemId: "frame_gold_royale", itemType: "frame" }),
+    });
+    assert(unownedEquipRes.status === 403, "Equipping unowned item rejected (403 Forbidden)");
+
+    // 13.11 Leaderboards: Global, Weekly, and Monthly
+    const globalLeaderboardRes = await request("/api/leaderboard?period=global", {
+      headers: { Cookie: studentCookie },
+    });
+    assert(globalLeaderboardRes.status === 200, "Global leaderboard returns 200 OK");
+    assert(Array.isArray(globalLeaderboardRes.data?.leaderboard), "Leaderboard returns array");
+    assert(globalLeaderboardRes.data?.currentUserRank?.userId === String(studentUser._id), "Current student rank calculated");
+    if (globalLeaderboardRes.data.leaderboard.length > 0) {
+      const topEntry = globalLeaderboardRes.data.leaderboard[0];
+      assert(topEntry.email === undefined && topEntry.passwordHash === undefined, "Leaderboard never exposes email or passwordHash");
+    }
+
+    const weeklyLeaderboardRes = await request("/api/leaderboard?period=weekly", {
+      headers: { Cookie: studentCookie },
+    });
+    assert(weeklyLeaderboardRes.status === 200, "Weekly leaderboard returns 200 OK");
+
+    const monthlyLeaderboardRes = await request("/api/leaderboard?period=monthly", {
+      headers: { Cookie: studentCookie },
+    });
+    assert(monthlyLeaderboardRes.status === 200, "Monthly leaderboard returns 200 OK");
+
     // Clean up test documents
     console.log("\nCleaning up test records...");
     await User.deleteMany({ email: { $in: [studentEmail, instructorEmail, instructor2Email, googleStudentEmail, existingLocalEmail] } });
+    await XPTransaction.deleteMany({ student: studentUser._id });
+    await CoinTransaction.deleteMany({ student: studentUser._id });
+    await UserAchievement.deleteMany({ student: studentUser._id });
+    await GameSession.deleteMany({ student: studentUser._id });
+    await UserInventory.deleteMany({ student: studentUser._id });
     if (createdCourseId) {
       await Course.findByIdAndDelete(createdCourseId);
       await Lesson.deleteMany({ course: createdCourseId });

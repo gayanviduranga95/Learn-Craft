@@ -19,8 +19,9 @@ import { lessonApi, certificateApi } from '../../services/api'
 import QuizModal from '../quiz/QuizModal'
 import AITutorWidget from '../ai-tutor/AITutorWidget'
 
-export default function CourseLessons() {
-  const { courseId } = useParams()
+export default function CourseLessons({ course: propCourse, onBack, onProgressSaved } = {}) {
+  const params = useParams()
+  const courseId = propCourse?.id || propCourse?._id || params.courseId
   const navigate = useNavigate()
 
   const [course, setCourse] = useState(null)
@@ -106,7 +107,11 @@ export default function CourseLessons() {
     lessons.length > 0 && completedCount === lessons.length
 
   function handleBack() {
-    navigate('/dashboard')
+    if (onBack) {
+      onBack()
+    } else {
+      navigate('/dashboard')
+    }
   }
 
   function goToPreviousLesson() {
@@ -128,7 +133,11 @@ export default function CourseLessons() {
       setSavingId(lesson.id)
       setError('')
 
-      await lessonApi.completeLesson(courseId, lesson.id)
+      const res = await lessonApi.completeLesson(courseId, lesson.id)
+
+      if (onProgressSaved) {
+        onProgressSaved(res)
+      }
 
       const updatedLessons = lessons.map((item) =>
         item.id === lesson.id

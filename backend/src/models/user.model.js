@@ -45,6 +45,39 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "instructor", "admin"],
       default: "student",
     },
+    xp: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    lifetimeXp: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    coins: {
+      type: Number,
+      default: 50,
+      min: 0,
+    },
+    level: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    equippedFrame: {
+      type: String,
+      default: "default",
+    },
+    equippedTheme: {
+      type: String,
+      default: "default",
+    },
+    streak: {
+      current: { type: Number, default: 0, min: 0 },
+      longest: { type: Number, default: 0, min: 0 },
+      lastActivityDate: { type: String, default: null },
+    },
   },
   {
     timestamps: true,

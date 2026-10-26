@@ -229,3 +229,55 @@ export const aiApi = {
     });
   },
 };
+
+export const gamificationApi = {
+  async getProfile() {
+    return request("/gamification/profile", { method: "GET" });
+  },
+};
+
+export const leaderboardApi = {
+  async getLeaderboard(period = "global") {
+    return request(`/leaderboard?period=${period}`, { method: "GET" });
+  },
+};
+
+export const arcadeApi = {
+  async startQuizRush(difficulty = "medium") {
+    return request(`/arcade/quiz-rush/start?difficulty=${difficulty}`, { method: "GET" });
+  },
+  async submitQuizRush({ sessionId, answers, timeElapsedSeconds }) {
+    return request("/arcade/quiz-rush/submit", {
+      method: "POST",
+      body: JSON.stringify({ sessionId, answers, timeElapsedSeconds }),
+    });
+  },
+  async startMemoryMatch(difficulty = "medium") {
+    return request(`/arcade/memory-match/start?difficulty=${difficulty}`, { method: "GET" });
+  },
+  async submitMemoryMatch({ sessionId, moves, timeSeconds }) {
+    return request("/arcade/memory-match/submit", {
+      method: "POST",
+      body: JSON.stringify({ sessionId, moves, timeSeconds }),
+    });
+  },
+};
+
+export const shopApi = {
+  async getCatalog() {
+    return request("/shop/items", { method: "GET" });
+  },
+  async buyItem(itemId) {
+    return request("/shop/buy", {
+      method: "POST",
+      body: JSON.stringify({ itemId }),
+    });
+  },
+  async equipItem(itemId, itemType) {
+    return request("/shop/equip", {
+      method: "POST",
+      body: JSON.stringify({ itemId, itemType }),
+    });
+  },
+};
+

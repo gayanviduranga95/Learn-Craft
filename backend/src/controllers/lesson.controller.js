@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Course from "../models/course.model.js";
 import Lesson from "../models/lesson.model.js";
 import CourseProgress from "../models/course-progress.model.js";
+import { awardReward } from "../services/reward.service.js";
+import { REWARD_CONFIG } from "../config/gamification.config.js";
 
 export async function getCourseLessons(req, res, next) {
   try {
@@ -101,6 +103,13 @@ export async function completeLesson(req, res, next) {
     const studentId = req.auth.userId;
     const lessonIdString = String(lesson._id);
 
+    const previousProgress = await CourseProgress.findOne({
+      student: studentId,
+      course: courseId,
+    }).lean();
+
+    const alreadyCompleted = previousProgress?.completedLessonIds?.includes(lessonIdString);
+
     const progress = await CourseProgress.findOneAndUpdate(
       { student: studentId, course: courseId },
       {
@@ -109,7 +118,7 @@ export async function completeLesson(req, res, next) {
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
         runValidators: true,
         setDefaultsOnInsert: true,
       }
@@ -124,6 +133,32 @@ export async function completeLesson(req, res, next) {
       isPublished: true,
     });
 
+    let reward = null;
+    let courseReward = null;
+
+    if (!alreadyCompleted) {
+      reward = await awardReward({
+        studentId,
+        eventType: "lesson_complete",
+        targetId: lessonIdString,
+        xp: REWARD_CONFIG.LESSON_COMPLETION.xp,
+        coins: REWARD_CONFIG.LESSON_COMPLETION.coins,
+        description: `Completed lesson: ${lesson.title}`,
+      });
+
+      // Check if course is now 100% completed
+      if (totalLessons > 0 && progress.completedLessons >= totalLessons) {
+        courseReward = await awardReward({
+          studentId,
+          eventType: "course_complete",
+          targetId: String(courseId),
+          xp: REWARD_CONFIG.COURSE_COMPLETION.xp,
+          coins: REWARD_CONFIG.COURSE_COMPLETION.coins,
+          description: `Completed course curriculum: ${course.title}`,
+        });
+      }
+    }
+
     res.json({
       message: "Lesson marked as completed.",
       progress: {
@@ -135,6 +170,8 @@ export async function completeLesson(req, res, next) {
             )
           : 0,
       },
+      reward,
+      courseReward,
     });
   } catch (error) {
     next(error);

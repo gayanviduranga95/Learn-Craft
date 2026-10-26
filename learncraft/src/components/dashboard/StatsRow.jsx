@@ -1,22 +1,35 @@
 import {
   Zap,
   BookOpenCheck,
-  Clock3,
+  Coins,
   Target,
   TrendingUp,
 } from 'lucide-react'
 
-export default function StatsRow({ completedLessons = 0, totalCourses = 0, completedCourses = 0 }) {
-  const xp = completedLessons * 50
-  const hours = (completedLessons * 0.25).toFixed(1)
+export default function StatsRow({
+  completedLessons = 0,
+  totalCourses = 0,
+  completedCourses = 0,
+  lifetimeXp = 0,
+  coins = 0,
+  level = 1,
+}) {
+  const displayXp = lifetimeXp || completedLessons * 50
 
   const stats = [
     {
       label: 'Total XP Earned',
-      value: xp.toLocaleString(),
-      note: `${completedLessons} lessons finished`,
+      value: displayXp.toLocaleString(),
+      note: `Level ${level} Achieved`,
       icon: Zap,
       color: 'blue',
+    },
+    {
+      label: 'Game Coins',
+      value: coins.toLocaleString(),
+      note: 'Spend in Reward Shop',
+      icon: Coins,
+      color: 'orange',
     },
     {
       label: 'Lessons Completed',
@@ -26,18 +39,11 @@ export default function StatsRow({ completedLessons = 0, totalCourses = 0, compl
       color: 'purple',
     },
     {
-      label: 'Learning Time',
-      value: `${hours}h`,
-      note: 'Engaged study',
-      icon: Clock3,
-      color: 'green',
-    },
-    {
       label: 'Courses Completed',
       value: `${completedCourses} / ${totalCourses}`,
       note: completedCourses > 0 ? 'Certificates unlocked' : 'Working toward goal',
       icon: Target,
-      color: 'orange',
+      color: 'green',
     },
   ]
 
