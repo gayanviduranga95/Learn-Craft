@@ -385,20 +385,98 @@ Test server running on port 1948
   ✓ PASS: Preserves existing instructor role after account linking
   ✓ PASS: Google subject ID safely associated with existing MongoDB document
 
-Cleaning up test records...
+### Automated Integration Test Execution:
+
+```bash
+cd backend
+npm test
+```
+
+Expected output:
+```
+==========================================
+LearnCraft LMS - Automated Integration Test
+==========================================
+[1] Health Check & Root API (1/1)
+[2] Authentication - Student & Instructor Registration (5/5)
+[3] Login & HttpOnly Cookie Verification (5/5)
+[4] Session Persistence & /api/auth/me (1/1)
+[5] Role-Based Authorization Enforcement (5/5)
+[6] Lesson Management & Instructor Ownership (1/1)
+[7] Course Catalog, Enrolment & Progress Workflow (5/5)
+[8] Quiz Creation, Sanitization & Tamper-Proof Evaluation (4/4)
+[9] Certificate Verification & PDF Generation (5/5)
+[10] AI Tutor Endpoint (1/1)
+[11] Logout & Cookie Invalidation (2/2)
+[12] Google Sign-In, Token Validation & Account Linking (17/17)
+[13] Gamification Engine: XP, Levels, Arcade & Shop (37/37)
 
 ==========================================
-Test Summary: Passed: 52, Failed: 0
+Test Summary: Passed: 89, Failed: 0 (100%)
 ==========================================
 ```
 
-### Frontend Build & Code Quality Verification:
+### Frontend Build Verification:
 
 ```bash
 cd learncraft
-npm run lint    # 0 errors
-npm run build   # Production bundle built in 622ms
+npm run build   # Production bundle built in ~1s (0 errors)
 ```
+
+---
+
+## 🌐 Production Deployment Guide: Connecting Backend to Frontend
+
+When deploying LearnCraft to production (e.g. Frontend on **Vercel / Netlify** and Backend on **Render / Railway / Fly.io / AWS**), follow these steps to connect them seamlessly:
+
+### Step 1: Deploy the Backend (e.g. Render, Railway, or VPS)
+Deploy the `/backend` folder and set the following **Environment Variables** in your hosting dashboard:
+
+| Variable | Description | Example Production Value |
+|---|---|---|
+| `NODE_ENV` | Environment mode | `production` |
+| `PORT` | Listening port (often assigned automatically) | `5000` |
+| `CLIENT_ORIGIN` | Your deployed frontend URL (CORS allowed origins) | `https://your-learncraft.vercel.app` |
+| `MONGODB_URI` | MongoDB Atlas connection string | `mongodb+srv://user:pass@cluster.mongodb.net/learncraft` |
+| `JWT_SECRET` | Secret key for signing JWT cookies (>= 32 characters) | `your_super_secret_production_key_here` |
+| `GOOGLE_CLIENT_ID` | Google OAuth Web Client ID | `your-id.apps.googleusercontent.com` |
+| `GEMINI_API_KEY` | Optional Gemini API Key for live AI tutoring | `your_gemini_api_key` |
+
+> **MongoDB Atlas Firewall Note:** In your [MongoDB Atlas](https://cloud.mongodb.com/) dashboard, go to **Network Access** -> click **Add IP Address** -> select **Allow Access from Anywhere (`0.0.0.0/0`)** so your cloud backend server can connect to the database.
+
+---
+
+### Step 2: Deploy the Frontend (e.g. Vercel, Netlify)
+Deploy the `/learncraft` folder and set the following **Environment Variables** in your frontend hosting dashboard:
+
+| Variable | Description | Example Production Value |
+|---|---|---|
+| `VITE_API_BASE_URL` | Full URL to your deployed backend API | `https://your-backend.onrender.com/api` |
+| `VITE_GOOGLE_CLIENT_ID` | Matching Google OAuth Web Client ID | `your-id.apps.googleusercontent.com` |
+
+---
+
+### Step 3: Update Google Cloud Console Authorized Origins
+In the [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+1. Click your **OAuth 2.0 Client ID** (Web application).
+2. Under **Authorized JavaScript origins**, add:
+   - `https://your-learncraft.vercel.app` (your production frontend URL)
+3. Save changes.
+
+---
+
+### Step 4: How the Connection Works Under the Hood
+1. **API Requests (`learncraft/src/services/api.js`):**
+   ```javascript
+   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+   ```
+   Every request sends `credentials: "include"` so session cookies flow across requests.
+2. **Cross-Origin Cookie Security (`backend/src/controllers/auth.controller.js`):**
+   In production (`NODE_ENV=production`), the backend automatically issues HttpOnly cookies with:
+   - `secure: true` (requires HTTPS)
+   - `sameSite: "none"` (enables cross-domain authentication between your frontend and backend platforms)
+3. **CORS Whitelist (`backend/src/app.js`):**
+   The backend inspects `CLIENT_ORIGIN` and permits authenticated requests coming from your frontend domain.
 
 ---
 
@@ -408,14 +486,16 @@ To perform a live evaluation or academic walkthrough:
 
 1. **Student Journey:**
    - Navigate to `http://localhost:5173/login`.
-   - Click **Create an account** -> Register as a student.
-   - Land on the **Student Dashboard** (`/dashboard`). View live metrics (0% initial progress, Level 1, 0 XP).
+   - Click **Create an account** -> Register as a student or click **Continue with Google**.
+   - Land on the **Student Dashboard** (`/dashboard`). View live metrics (Level, XP, Coins balance, Consistency streak).
    - In **Explore Subjects**, select **Mathematics** or **Computer Science**.
-   - Navigate through lessons using the **Next Lesson** button; observe the progress bar update dynamically.
-   - Click **Mark as Completed**; refresh the page to observe persistent progress from MongoDB.
-   - Click **Take Assessment**; answer the multi-choice questions. Submit to view server-calculated percentage and explanations.
-   - Once all lessons are finished, click **Download Certificate** to receive the generated landscape PDF.
-   - Open the **AI Tutor** (floating widget at bottom right); ask `"Can you explain how variables work in programming?"` to receive an interactive response.
+   - Navigate through lessons; click **Mark as Completed** to receive instant XP and Coins celebration toasts.
+   - Click **Take Assessment**; answer the multi-choice questions with server-side grading.
+   - Visit the **Arcade** (`/arcade`) to play **Quiz Rush** (timed challenge) and **Concept Memory Match**.
+   - Visit the **Leaderboard** (`/leaderboard`) to view the Hall of Fame podium and weekly rankings.
+   - Visit the **Reward Shop** (`/shop`) to spend Game Coins on cosmetic avatar frames and themes.
+   - Once all lessons are finished, click **Download Certificate** to receive the verifiable PDF.
+   - Open the **AI Tutor** (floating widget at bottom right); ask `"Can you explain how recursion works?"`.
 
 2. **Instructor Journey:**
    - Sign out and register a new account selecting **Role: Instructor**.
@@ -432,3 +512,4 @@ To perform a live evaluation or academic walkthrough:
 ## 📄 License & Academic Integrity
 
 This project is developed for academic evaluation and demonstration purposes. All code conforms to secure coding principles, clean architecture guidelines, and academic software engineering standards.
+
