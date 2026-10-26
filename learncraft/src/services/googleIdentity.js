@@ -87,18 +87,23 @@ export function registerGsiCallback(clientId, onCredential, onError) {
   activeCallback = onCredential;
   activeErrorCallback = onError;
 
-  if (!clientId || typeof window === "undefined" || !window.google?.accounts?.id) {
+  const sanitizedClientId =
+    typeof clientId === "string"
+      ? clientId.trim().replace(/^["']|["']$/g, "")
+      : "";
+
+  if (!sanitizedClientId || typeof window === "undefined" || !window.google?.accounts?.id) {
     return false;
   }
 
   // If already initialized for this exact client ID, do NOT call initialize() again!
-  if (isInitialized && initializedClientId === clientId) {
+  if (isInitialized && initializedClientId === sanitizedClientId) {
     return true;
   }
 
   try {
     window.google.accounts.id.initialize({
-      client_id: clientId,
+      client_id: sanitizedClientId,
       callback: (response) => {
         if (response?.credential) {
           if (typeof activeCallback === "function") {
@@ -137,6 +142,15 @@ export function renderGsiButton(container, options = {}) {
 
   container.innerHTML = "";
 
+  const measuredWidth =
+    container.clientWidth ||
+    container.parentElement?.clientWidth ||
+    options.width ||
+    340;
+
+  // Google GSI requires a width integer between 200 and 400
+  const safeWidth = Math.min(Math.max(Math.floor(measuredWidth), 200), 400);
+
   try {
     window.google.accounts.id.renderButton(container, {
       type: "standard",
@@ -145,7 +159,7 @@ export function renderGsiButton(container, options = {}) {
       shape: "pill",
       text: options.text === "signup_with" ? "signup_with" : "continue_with",
       logo_alignment: "left",
-      width: options.width || 380,
+      width: safeWidth,
     });
     return true;
   } catch (err) {

@@ -8,12 +8,15 @@ let googleClient = null;
 
 function getGoogleClient() {
   if (!googleClient) {
-    googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const rawId = process.env.GOOGLE_CLIENT_ID || "";
+    googleClient = new OAuth2Client(rawId.trim().replace(/^["']|["']$/g, ""));
   }
   return googleClient;
 }
 
 export async function verifyGoogleToken(idToken) {
+  const configuredClientId = (process.env.GOOGLE_CLIENT_ID || "").trim().replace(/^["']|["']$/g, "");
+
   // Support testing in test and development environment if test token fixture is passed
   if (
     (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") &&
@@ -24,7 +27,7 @@ export async function verifyGoogleToken(idToken) {
     if (parsed.isExpired) {
       throw new Error("Token is expired.");
     }
-    if (parsed.aud && process.env.GOOGLE_CLIENT_ID && parsed.aud !== process.env.GOOGLE_CLIENT_ID) {
+    if (parsed.aud && configuredClientId && parsed.aud !== configuredClientId) {
       throw new Error("Token audience mismatch.");
     }
     return {
@@ -36,15 +39,14 @@ export async function verifyGoogleToken(idToken) {
     };
   }
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  if (!clientId) {
+  if (!configuredClientId) {
     throw new Error("GOOGLE_CLIENT_ID is not configured.");
   }
 
   const client = getGoogleClient();
   const ticket = await client.verifyIdToken({
     idToken,
-    audience: clientId,
+    audience: configuredClientId,
   });
 
   const payload = ticket.getPayload();
@@ -221,7 +223,14 @@ export async function login(req, res) {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message: "Invalid email or password. If you haven't created an account yet, please click 'Create Account' below.",
+      });
+    }
+
+    if (!user.passwordHash && user.authProvider === "google") {
+      return res.status(400).json({
+        success: false,
+        message: "This account was created with Google. Please click 'Continue with Google' to sign in.",
       });
     }
 
