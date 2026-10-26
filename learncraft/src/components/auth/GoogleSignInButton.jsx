@@ -16,7 +16,11 @@ export default function GoogleSignInButton({
   const [gisReady, setGisReady] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const rawClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const clientId =
+    typeof rawClientId === "string"
+      ? rawClientId.trim().replace(/^["']|["']$/g, "")
+      : "";
 
   // Keep stable refs to callbacks so changing props don't trigger re-initialization
   const onSuccessRef = useRef(onSuccess);

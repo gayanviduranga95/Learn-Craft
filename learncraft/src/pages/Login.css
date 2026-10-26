@@ -668,16 +668,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 44px;
+  min-height: 48px;
+  overflow: visible;
 }
 
-.google-gis-container > div,
-.google-gis-container iframe {
-  width: 100% !important;
-  max-width: 400px;
+.google-gis-container > div {
+  width: 100%;
   display: flex !important;
   justify-content: center !important;
-  border-radius: 28px !important;
+  align-items: center !important;
+}
+
+.google-gis-container iframe {
+  max-width: 100% !important;
+  border: none !important;
+  outline: none !important;
 }
 
 .google-demo-link {
