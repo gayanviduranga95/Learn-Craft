@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import GoogleConfigModal from "./GoogleConfigModal";
 import { loadGsiScript, registerGsiCallback } from "../../services/googleIdentity";
 
 export default function GoogleSignInButton({
@@ -8,7 +7,6 @@ export default function GoogleSignInButton({
   loading = false,
   text = "continue_with",
 }) {
-  const [showConfigModal, setShowConfigModal] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
 
   const clientId = (() => {
@@ -26,7 +24,7 @@ export default function GoogleSignInButton({
     if (loading || signingIn) return;
 
     if (!clientId) {
-      setShowConfigModal(true);
+      onErrorRef.current?.("Google Client ID is not configured.");
       return;
     }
 
@@ -82,12 +80,6 @@ export default function GoogleSignInButton({
     }
   }
 
-  function handleSelectDemo(account) {
-    setShowConfigModal(false);
-    const token = "test_google_token:" + JSON.stringify(account);
-    onSuccessRef.current?.(token);
-  }
-
   const label =
     loading || signingIn
       ? "Signing in..."
@@ -133,20 +125,6 @@ export default function GoogleSignInButton({
         </svg>
         <span>{label}</span>
       </button>
-
-      <button
-        type="button"
-        className="google-demo-link"
-        onClick={() => setShowConfigModal(true)}
-      >
-        Google setup &amp; demo accounts
-      </button>
-
-      <GoogleConfigModal
-        isOpen={showConfigModal}
-        onClose={() => setShowConfigModal(false)}
-        onSelectDemoAccount={handleSelectDemo}
-      />
     </div>
   );
 }
