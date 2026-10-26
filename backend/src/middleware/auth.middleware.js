@@ -30,3 +30,25 @@ export function requireAuth(req, res, next) {
     });
   }
 }
+
+export function requireRole(allowedRoles = []) {
+  return (req, res, next) => {
+    if (!req.auth) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    if (!allowedRoles.includes(req.auth.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You do not have permission to access this resource.",
+      });
+    }
+
+    next();
+  };
+}
+
+export const requireInstructor = requireRole(["instructor", "admin"]);

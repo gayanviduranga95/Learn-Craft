@@ -1,0 +1,875 @@
+
+/* ==========================================
+   LearnCraft — Course Learning Page
+   Consistent with the existing dashboard UI
+   ========================================== */
+
+.lc-course-lessons {
+  --lc-blue: #2563eb;
+  --lc-blue-hover: #1d4ed8;
+  --lc-blue-light: #eff6ff;
+  --lc-text: #14213d;
+  --lc-muted: #64748b;
+  --lc-border: #e2e8f0;
+  --lc-panel: #ffffff;
+  --lc-page: #f8fafc;
+  --lc-green: #16a34a;
+
+  width: 100%;
+  max-width: 1360px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 30px 36px 48px;
+  color: var(--lc-text);
+  background: var(--lc-page);
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.lc-course-lessons *,
+.lc-course-lessons *::before,
+.lc-course-lessons *::after {
+  box-sizing: border-box;
+}
+
+/* Back button */
+
+.lc-course-lessons .lc-lessons-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  margin: 0 0 28px;
+  padding: 0 13px;
+  color: #334155;
+  background: #fff;
+  border: 1px solid var(--lc-border);
+  border-radius: 9px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.lc-course-lessons .lc-lessons-back:hover {
+  color: var(--lc-blue);
+  background: var(--lc-blue-light);
+  border-color: #bfdbfe;
+}
+
+/* Course heading */
+
+.lc-course-lessons .lc-lessons-header {
+  margin-bottom: 22px;
+}
+
+.lc-course-lessons .lc-courses-eyebrow {
+  display: inline-block;
+  margin-bottom: 9px;
+  color: var(--lc-blue);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  line-height: 1.5;
+}
+
+.lc-course-lessons .lc-lessons-header h2 {
+  margin: 0;
+  color: var(--lc-text);
+  font-size: clamp(26px, 2.5vw, 34px);
+  font-weight: 750;
+  letter-spacing: -0.8px;
+  line-height: 1.25;
+}
+
+.lc-course-lessons .lc-lessons-header > p {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: var(--lc-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* Course progress */
+
+.lc-course-lessons .lc-lessons-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 18px;
+  margin-top: 22px;
+  padding: 16px 18px;
+  color: #334155;
+  background: var(--lc-panel);
+  border: 1px solid var(--lc-border);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lc-course-lessons .lc-lessons-progress > span:last-child {
+  color: var(--lc-blue);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.lc-course-lessons .lc-lessons-progress-track {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.lc-course-lessons .lc-lessons-progress-fill {
+  height: 100%;
+  background: var(--lc-blue);
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+/* Main two-column layout */
+
+.lc-course-lessons .lc-lessons-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.lc-course-lessons .lc-lessons-list,
+.lc-course-lessons .lc-lesson-content {
+  min-width: 0;
+  background: var(--lc-panel);
+  border: 1px solid var(--lc-border);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
+}
+
+/* Lesson sidebar */
+
+.lc-course-lessons .lc-lessons-list {
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  padding: 18px 10px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.lc-course-lessons .lc-lessons-list h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 8px 16px;
+  color: var(--lc-text);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.lc-course-lessons .lc-lessons-list h3 svg {
+  flex-shrink: 0;
+  color: var(--lc-blue);
+}
+
+.lc-course-lessons .lc-lessons-count {
+  margin: -7px 8px 12px;
+  color: var(--lc-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.lc-course-lessons .lc-lesson-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 62px;
+  margin: 0 0 4px;
+  padding: 11px 10px;
+  color: #475569;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.lc-course-lessons .lc-lesson-item > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #94a3b8;
+}
+
+.lc-course-lessons .lc-lesson-item > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lc-course-lessons .lc-lesson-item strong {
+  color: #263650;
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.lc-course-lessons .lc-lesson-item small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #8493aa;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.lc-course-lessons .lc-lesson-item:hover {
+  background: #f8fafc;
+  border-color: var(--lc-border);
+}
+
+.lc-course-lessons .lc-lesson-item.is-active {
+  background: var(--lc-blue-light);
+  border-color: #dbeafe;
+}
+
+.lc-course-lessons .lc-lesson-item.is-active > svg,
+.lc-course-lessons .lc-lesson-item.is-active strong {
+  color: var(--lc-blue);
+}
+
+.lc-course-lessons .lc-lesson-item.is-completed > svg {
+  color: var(--lc-green);
+}
+
+/* Lesson reading panel */
+
+.lc-course-lessons .lc-lesson-content {
+  min-height: 300px;
+  padding: 28px;
+}
+
+.lc-course-lessons .lc-lesson-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.lc-course-lessons .lc-lesson-topline .lc-courses-eyebrow {
+  margin-bottom: 0;
+}
+
+.lc-course-lessons .lc-lesson-content h3 {
+  margin: 0;
+  color: var(--lc-text);
+  font-size: clamp(21px, 2vw, 27px);
+  font-weight: 750;
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+}
+
+.lc-course-lessons .lc-lesson-content > p {
+  margin: 10px 0 20px;
+  color: var(--lc-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.lc-course-lessons .lc-lesson-reading {
+  margin-top: 22px;
+  padding: 19px 20px;
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Complete lesson action */
+
+.lc-course-lessons .lc-lesson-complete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  margin-top: 18px;
+  padding: 0 16px;
+  color: #fff;
+  background: var(--lc-blue);
+  border: 1px solid var(--lc-blue);
+  border-radius: 9px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.lc-course-lessons .lc-lesson-complete:hover:not(:disabled) {
+  background: var(--lc-blue-hover);
+}
+
+.lc-course-lessons .lc-lesson-complete:disabled {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  cursor: default;
+}
+
+/* Lesson navigation */
+
+.lc-course-lessons .lc-lesson-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid #edf0f5;
+}
+
+.lc-course-lessons .lc-lesson-nav-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 12px;
+  color: #334155;
+  background: #fff;
+  border: 1px solid var(--lc-border);
+  border-radius: 9px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.lc-course-lessons .lc-lesson-nav-button span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.lc-course-lessons .lc-lesson-nav-button small {
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.8px;
+}
+
+.lc-course-lessons .lc-lesson-nav-button:hover:not(:disabled) {
+  color: var(--lc-blue);
+  background: var(--lc-blue-light);
+  border-color: #bfdbfe;
+}
+
+.lc-course-lessons .lc-lesson-nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.lc-course-lessons .lc-lesson-nav-next {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* Completed lesson label */
+
+.lc-course-lessons .lc-lesson-completed-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #dcfce7;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Course completion message */
+
+.lc-course-lessons .lc-course-complete-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding: 18px;
+  color: #14532d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+}
+
+.lc-course-lessons .lc-course-complete-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: #15803d;
+  background: #dcfce7;
+  border-radius: 11px;
+}
+
+.lc-course-lessons .lc-course-complete-banner h3 {
+  margin: 0 0 5px;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.lc-course-lessons .lc-course-complete-banner p {
+  margin: 0;
+  color: #166534;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.lc-course-lessons .lc-course-finish-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-top: 16px;
+  padding: 0 15px;
+  color: #fff;
+  background: var(--lc-blue);
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lc-course-lessons .lc-course-finish-button:hover {
+  background: var(--lc-blue-hover);
+}
+
+/* Empty and error states */
+
+.lc-course-lessons .lc-lessons-no-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 20px 0;
+}
+
+.lc-course-lessons .lc-lessons-no-content > svg {
+  color: var(--lc-blue);
+}
+
+.lc-course-lessons .lc-lessons-no-content h3 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.lc-course-lessons .lc-lessons-no-content p {
+  color: var(--lc-muted);
+  font-size: 13px;
+}
+
+.lc-course-lessons [role="alert"] {
+  padding: 12px 15px;
+  margin: 14px 0;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Keyboard accessibility */
+
+.lc-course-lessons button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .lc-course-lessons {
+    padding: 24px 22px 40px;
+  }
+
+  .lc-course-lessons .lc-lessons-layout {
+    grid-template-columns: minmax(225px, 265px) minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .lc-course-lessons .lc-lesson-content {
+    padding: 22px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .lc-course-lessons {
+    padding: 18px 14px 30px;
+  }
+
+  .lc-course-lessons .lc-lessons-header h2 {
+    font-size: 27px;
+  }
+
+  .lc-course-lessons .lc-lessons-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .lc-course-lessons .lc-lessons-list {
+    position: static;
+    max-height: 320px;
+    padding: 15px 9px;
+  }
+
+  .lc-course-lessons .lc-lesson-content {
+    min-height: 260px;
+    padding: 20px 17px;
+  }
+
+  .lc-course-lessons .lc-lesson-content h3 {
+    font-size: 22px;
+  }
+
+  .lc-course-lessons .lc-lesson-reading {
+    padding: 16px;
+  }
+
+  .lc-course-lessons .lc-lesson-complete {
+    width: 100%;
+  }
+
+  .lc-course-lessons .lc-lesson-navigation {
+    gap: 8px;
+  }
+
+  .lc-course-lessons .lc-lesson-nav-button {
+    gap: 5px;
+    padding: 9px 8px;
+    font-size: 11px;
+  }
+
+  .lc-course-lessons .lc-course-complete-banner {
+    align-items: flex-start;
+    padding: 15px;
+  }
+}
+
+/* ==========================================
+   LearnCraft — Login-inspired course theme
+   Reuses the original login background image
+   ========================================== */
+
+.lc-course-lessons {
+  --lc-primary: #087bff;
+  --lc-primary-dark: #0564db;
+  --lc-primary-soft: rgba(0, 228, 242, 0.10);
+  --lc-text: #102448;
+  --lc-muted: #637493;
+  --lc-border: rgba(255, 255, 255, 0.48);
+
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 30px clamp(18px, 4vw, 64px) 48px;
+  color: var(--lc-text);
+
+  background-color: #071735;
+  background-image:
+    linear-gradient(
+      135deg,
+      rgba(7, 23, 53, 0.48),
+      rgba(8, 70, 135, 0.24) 50%,
+      rgba(7, 23, 53, 0.52)
+    ),
+    url("/images/learncraft-background.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Frosted-glass surfaces */
+
+.lc-course-lessons .lc-lessons-progress,
+.lc-course-lessons .lc-lessons-list,
+.lc-course-lessons .lc-lesson-content {
+  background: rgba(244, 249, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  box-shadow:
+    0 16px 44px rgba(0, 12, 36, 0.17),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  backdrop-filter: blur(22px) saturate(145%);
+}
+
+/* Course progress */
+
+.lc-course-lessons .lc-lessons-progress {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+/* Reading area */
+
+.lc-course-lessons .lc-lesson-reading {
+  background: rgba(224, 240, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: 14px;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* Back button and lesson navigation */
+
+.lc-course-lessons .lc-lessons-back,
+.lc-course-lessons .lc-lesson-nav-button {
+  color: #102448;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.lc-course-lessons .lc-lessons-back:hover,
+.lc-course-lessons .lc-lesson-nav-button:hover:not(:disabled) {
+  color: #075fd1;
+  background: rgba(255, 255, 255, 0.94);
+  border-color: #7ddff5;
+}
+
+/* Active lesson — cyan and blue from the login theme */
+
+.lc-course-lessons .lc-lesson-item.is-active {
+  background: rgba(8, 123, 255, 0.11);
+  border-color: rgba(8, 123, 255, 0.32);
+  box-shadow: inset 3px 0 0 #087bff;
+}
+
+.lc-course-lessons .lc-lesson-item.is-active > svg,
+.lc-course-lessons .lc-lesson-item.is-active strong {
+  color: #075fd1;
+}
+
+/* Primary action — retain LearnCraft gradient */
+
+.lc-course-lessons .lc-lesson-complete,
+.lc-course-lessons .lc-course-finish-button {
+  color: #fff;
+  background: linear-gradient(110deg, #087bff, #00bfe8);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 7px 20px rgba(8, 123, 255, 0.2);
+}
+
+.lc-course-lessons .lc-lesson-complete:hover:not(:disabled),
+.lc-course-lessons .lc-course-finish-button:hover {
+  background: linear-gradient(110deg, #0564db, #00a8d0);
+}
+
+/* Keep the background stable on mobile */
+
+@media (max-width: 640px) {
+  .lc-course-lessons {
+    background-attachment: scroll;
+    background-position: center;
+    padding: 20px 14px 32px;
+  }
+
+  .lc-course-lessons .lc-lessons-progress,
+  .lc-course-lessons .lc-lessons-list,
+  .lc-course-lessons .lc-lesson-content {
+    background: rgba(248, 251, 255, 0.88);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+}
+
+/* =========================================
+   LearnCraft — Space Academy Theme
+   Light glass, readable content, soft image
+   ========================================= */
+
+.lc-course-lessons {
+  --lc-primary: #087bff;
+  --lc-primary-dark: #0564db;
+  --lc-text: #102448;
+  --lc-muted: #607493;
+
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 28px clamp(18px, 3.5vw, 56px) 48px;
+  color: var(--lc-text);
+
+  background-color: #dcecff;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(226, 239, 255, 0.22),
+      rgba(226, 239, 255, 0.40)
+    ),
+    url("/images/learncraft-course-background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Clear, readable panels — less transparency */
+
+.lc-course-lessons .lc-lessons-progress,
+.lc-course-lessons .lc-lessons-list,
+.lc-course-lessons .lc-lesson-content {
+  background: rgba(248, 251, 255, 0.90);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 8px 26px rgba(22, 53, 100, 0.12);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Course heading stays readable over the image */
+
+.lc-course-lessons .lc-lessons-header h2 {
+  color: #102448;
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.45);
+}
+
+.lc-course-lessons .lc-lessons-header > p {
+  color: #314b70;
+}
+
+/* Progress */
+
+.lc-course-lessons .lc-lessons-progress {
+  background: rgba(248, 251, 255, 0.94);
+}
+
+.lc-course-lessons .lc-lessons-progress-track {
+  height: 7px;
+  background: #d8e3f3;
+}
+
+.lc-course-lessons .lc-lessons-progress-fill {
+  background: linear-gradient(90deg, #087bff, #00bde8);
+}
+
+/* Lesson sidebar */
+
+.lc-course-lessons .lc-lessons-list {
+  background: rgba(248, 251, 255, 0.92);
+}
+
+.lc-course-lessons .lc-lesson-item {
+  border-radius: 9px;
+}
+
+.lc-course-lessons .lc-lesson-item.is-active {
+  background: #dcecff;
+  border-color: #b6d6ff;
+  box-shadow: inset 3px 0 0 #087bff;
+}
+
+.lc-course-lessons .lc-lesson-item.is-active strong,
+.lc-course-lessons .lc-lesson-item.is-active > svg {
+  color: #0564db;
+}
+
+/* Lesson reading panel */
+
+.lc-course-lessons .lc-lesson-content {
+  background: rgba(250, 252, 255, 0.94);
+  padding: 28px;
+}
+
+.lc-course-lessons .lc-lesson-reading {
+  background: #edf5ff;
+  border: 1px solid #dfebfa;
+  border-radius: 12px;
+  color: #263e61;
+}
+
+/* Primary actions */
+
+.lc-course-lessons .lc-lesson-complete,
+.lc-course-lessons .lc-course-finish-button {
+  color: #fff;
+  background: linear-gradient(110deg, #087bff, #00bde8);
+  border: 0;
+  border-radius: 9px;
+  box-shadow: 0 4px 12px rgba(8, 123, 255, 0.17);
+}
+
+.lc-course-lessons .lc-lesson-complete:hover:not(:disabled),
+.lc-course-lessons .lc-course-finish-button:hover {
+  background: linear-gradient(110deg, #0564db, #009fc9);
+}
+
+/* Navigation buttons */
+
+.lc-course-lessons .lc-lessons-back,
+.lc-course-lessons .lc-lesson-nav-button {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #d9e5f5;
+  border-radius: 9px;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.lc-course-lessons .lc-lessons-back:hover,
+.lc-course-lessons .lc-lesson-nav-button:hover:not(:disabled) {
+  background: #edf5ff;
+  border-color: #b6d6ff;
+}
+
+/* Mobile layout */
+
+@media (max-width: 640px) {
+  .lc-course-lessons {
+    padding: 18px 14px 30px;
+    background-attachment: scroll;
+    background-position: center;
+  }
+
+  .lc-course-lessons .lc-lessons-progress,
+  .lc-course-lessons .lc-lessons-list,
+  .lc-course-lessons .lc-lesson-content {
+    background: rgba(250, 252, 255, 0.96);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  .lc-course-lessons .lc-lesson-content {
+    padding: 20px 17px;
+  }
+}

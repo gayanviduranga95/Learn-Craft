@@ -643,6 +643,48 @@
   transform: translateY(-1px);
 }
 
+.google-btn-container {
+  width: 100%;
+  position: relative;
+  margin-top: 12px;
+}
+
+.google-btn-container .social-button {
+  margin-top: 0;
+}
+
+.google-btn-container:hover .social-button {
+  border-color: #a7c6f5;
+  background: rgba(255, 255, 255, 0.91);
+  transform: translateY(-1px);
+}
+
+.google-gis-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.0001;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 28px;
+}
+
+.google-gis-layer > div,
+.google-gis-layer iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 52px !important;
+  transform: scale(1.35);
+  transform-origin: center center;
+  cursor: pointer !important;
+}
+
 .google-mark {
   font-family: Arial, sans-serif;
   font-size: 23px;

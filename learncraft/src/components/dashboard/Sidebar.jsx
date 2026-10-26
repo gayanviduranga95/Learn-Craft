@@ -1,29 +1,48 @@
 import {
   Sparkles,
   LayoutDashboard,
-  BookOpen,
-  Compass,
+  Gamepad2,
   Trophy,
-  ChartNoAxesColumnIncreasing,
-  Settings,
-  CircleHelp,
+  ShoppingBag,
+  Coins,
   LogOut,
   Zap,
-  ChevronRight,
+  GraduationCap,
 } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
-const navigation = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'My Courses', icon: BookOpen, path: '/courses' },
-  { label: 'Explore', icon: Compass, path: '/explore' },
-  { label: 'Achievements', icon: Trophy, path: '/achievements' },
-  { label: 'My Progress', icon: ChartNoAxesColumnIncreasing, path: '/progress' },
-]
-
-export default function Sidebar() {
+export default function Sidebar({ totalLessonsDone = 0, gamificationData = null }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { logout, isInstructor } = useAuth()
+
+  const level = gamificationData?.level || Math.max(1, Math.floor((totalLessonsDone * 50) / 200) + 1)
+  const lifetimeXp = gamificationData?.lifetimeXp ?? (totalLessonsDone * 50)
+  const nextLevelXp = gamificationData?.levelDetails?.nextLevelCeiling || level * 200
+  const progressPercent = gamificationData?.levelDetails?.progressPercentage ?? Math.min(100, Math.round((lifetimeXp / nextLevelXp) * 100))
+  const title = gamificationData?.levelDetails?.title || (isInstructor ? 'Verified Educator' : 'Curious Explorer')
+  const coins = gamificationData?.coins ?? 0
+
+  const navigation = [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    { label: 'Arcade Games', icon: Gamepad2, path: '/arcade' },
+    { label: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
+    { label: 'Reward Shop', icon: ShoppingBag, path: '/shop' },
+  ]
+
+  if (isInstructor) {
+    navigation.push({
+      label: 'Instructor Studio',
+      icon: GraduationCap,
+      path: '/instructor',
+    })
+  }
+
+  const handleSignOut = async () => {
+    await logout()
+    navigate('/login')
+  }
 
   return (
     <aside className="lc-sidebar">
@@ -60,35 +79,53 @@ export default function Sidebar() {
 
       <div className="lc-sidebar-spacer" />
 
+      {/* Spendable Coins quick badge */}
+      <div
+        className="lc-coins-pill"
+        onClick={() => navigate('/shop')}
+        title="Your spendable Game Coins. Click to visit Reward Shop!"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          margin: '0 12px 14px',
+          padding: '10px 14px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '12px',
+          cursor: 'pointer',
+          transition: 'background 0.2s',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffd76a', fontSize: '0.82rem', fontWeight: '700' }}>
+          <Coins size={16} /> Coins
+        </span>
+        <strong style={{ color: '#fff', fontSize: '0.95rem', fontWeight: '800' }}>
+          {coins.toLocaleString()}
+        </strong>
+      </div>
+
       <section className="lc-level-card">
         <div className="lc-level-top">
           <span className="lc-level-icon"><Zap size={19} /></span>
           <span>YOUR LEVEL</span>
-          <strong>05</strong>
+          <strong>{level < 10 ? `0${level}` : level}</strong>
         </div>
-        <h3>Curious Explorer</h3>
+        <h3>{title}</h3>
         <div className="lc-xp-row">
-          <span>1,250 XP</span>
-          <span>1,500 XP</span>
+          <span>{lifetimeXp} XP</span>
+          <span>{nextLevelXp} XP</span>
         </div>
         <div className="lc-xp-track">
-          <span />
+          <span style={{ width: `${progressPercent}%` }} />
         </div>
-        <button type="button" className="lc-level-link" onClick={() => navigate('/progress')}>
-          View progress <ChevronRight size={15} />
-        </button>
+        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '6px' }}>
+          {totalLessonsDone} lessons verified
+        </div>
       </section>
 
       <div className="lc-sidebar-bottom">
-        <button type="button" className="lc-nav-item" onClick={() => navigate('/settings')}>
-          <Settings size={19} />
-          <span>Settings</span>
-        </button>
-        <button type="button" className="lc-nav-item" onClick={() => navigate('/help')}>
-          <CircleHelp size={19} />
-          <span>Help & Support</span>
-        </button>
-        <button type="button" className="lc-nav-item lc-logout" onClick={() => navigate('/login')}>
+        <button type="button" className="lc-nav-item lc-logout" onClick={handleSignOut}>
           <LogOut size={19} />
           <span>Sign Out</span>
         </button>

@@ -1,86 +1,62 @@
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
-  BookOpen,
   Calculator,
   FlaskConical,
   Code2,
   Globe2,
   Palette,
   CheckCircle2,
-  Play,
+  Search,
 } from 'lucide-react'
+import { courseApi } from '../../services/api'
 import CourseCard from './CourseCard'
 import './CourseSection.css'
 
-const INITIAL_COURSES = [
-  {
-    id: 'mathematics',
-    title: 'Mathematics',
+const COURSE_DISPLAY = {
+  Mathematics: {
     subtitle: 'Algebra and Equations',
     category: 'CORE SUBJECT',
-    progress: 67,
-    completedLessons: 8,
-    totalLessons: 12,
-    status: 'ongoing',
     icon: Calculator,
     theme: 'math',
-    description: 'Practice problem solving, algebra, and essential concepts.',
+    description:
+      'Practice problem solving, algebra, and essential concepts.',
   },
-  {
-    id: 'science',
-    title: 'Science',
+  Science: {
     subtitle: 'Energy and Matter',
     category: 'CORE SUBJECT',
-    progress: 30,
-    completedLessons: 3,
-    totalLessons: 10,
-    status: 'ongoing',
     icon: FlaskConical,
     theme: 'science',
-    description: 'Explore scientific ideas through experiments and discovery.',
+    description:
+      'Explore scientific ideas through experiments and discovery.',
   },
-  {
-    id: 'computer-science',
-    title: 'Computer Science',
+  'Computer Science': {
     subtitle: 'Introduction to Programming',
     category: 'TECHNOLOGY',
-    progress: 0,
-    completedLessons: 0,
-    totalLessons: 8,
-    status: 'not-started',
     icon: Code2,
     theme: 'coding',
-    description: 'Learn programming fundamentals and computational thinking.',
+    description:
+      'Learn programming fundamentals and computational thinking.',
   },
-  {
-    id: 'english',
-    title: 'English',
+  English: {
     subtitle: 'Reading and Communication',
     category: 'LANGUAGES',
-    progress: 100,
-    completedLessons: 10,
-    totalLessons: 10,
-    status: 'completed',
     icon: Globe2,
     theme: 'english',
-    description: 'Build confidence in reading, writing, and communication.',
+    description:
+      'Build confidence in reading, writing, and communication.',
   },
-  {
-    id: 'creative-learning',
-    title: 'Creative Learning',
+  'Creative Learning': {
     subtitle: 'Design and Problem Solving',
     category: 'ELECTIVE',
-    progress: 0,
-    completedLessons: 0,
-    totalLessons: 6,
-    status: 'not-started',
     icon: Palette,
     theme: 'creative',
-    description: 'Develop creative thinking through fun challenges.',
+    description:
+      'Develop creative thinking through fun challenges.',
   },
-]
+}
 
 const FILTERS = [
   { id: 'ongoing', label: 'Ongoing' },
@@ -88,64 +64,179 @@ const FILTERS = [
   { id: 'all', label: 'All Courses' },
 ]
 
+function normalizeCourse(apiCourse) {
+  const display = COURSE_DISPLAY[apiCourse.title] ?? {}
+  const totalLessons = apiCourse.totalLessons ?? 0
+  const completedLessons = apiCourse.completedLessons ?? 0
+
+  const progress = Math.min(
+    100,
+    Math.max(
+      0,
+      apiCourse.progress ??
+        (totalLessons > 0
+          ? Math.round(
+              (completedLessons / totalLessons) * 100
+            )
+          : 0)
+    )
+  )
+
+  return {
+    ...apiCourse,
+    id: apiCourse._id ?? apiCourse.id,
+    subtitle: display.subtitle ?? apiCourse.category ?? 'Course',
+    category:
+      display.category ??
+      apiCourse.category?.toUpperCase() ??
+      'COURSE',
+    icon: display.icon ?? Code2,
+    theme: display.theme ?? 'coding',
+    description:
+      apiCourse.description || display.description || '',
+    totalLessons,
+    completedLessons,
+    progress,
+    completedLessonIds: apiCourse.completedLessonIds ?? [],
+    status:
+      progress >= 100
+        ? 'completed'
+        : progress > 0
+          ? 'ongoing'
+          : 'not-started',
+  }
+}
+
 function getStatus(course) {
-  if (course.status === 'completed' || course.progress >= 100) {
-    return 'completed'
-  }
-
-  if (course.progress > 0) {
-    return 'ongoing'
-  }
-
+  if (course.progress >= 100) return 'completed'
+  if (course.progress > 0) return 'ongoing'
   return 'not-started'
 }
 
 export default function CourseSection() {
+  const navigate = useNavigate()
+
   const [activeFilter, setActiveFilter] = useState('ongoing')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showAll, setShowAll] = useState(false)
+  const [allCourses, setAllCourses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadCourses() {
+      try {
+        setLoading(true)
+        setError('')
+
+        const data = await courseApi.getCourses()
+
+        if (!Array.isArray(data)) {
+          throw new Error(
+            'The server returned an invalid course list.'
+          )
+        }
+
+        if (!cancelled) {
+          setAllCourses(data.map(normalizeCourse))
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err.message || 'Unable to load your courses.'
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadCourses()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const courses = useMemo(() => {
-    if (activeFilter === 'all') return INITIAL_COURSES
+    let filtered = allCourses
 
-    return INITIAL_COURSES.filter(
-      (course) => getStatus(course) === activeFilter
-    )
-  }, [activeFilter])
-
-  const visibleCourses = showAll ? courses : courses.slice(0, 3)
-
-  const handleCourseAction = (course) => {
-    const continueSection = document.getElementById('continue-learning')
-
-    if (continueSection) {
-      continueSection.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      })
-    } else {
-      window.dispatchEvent(
-        new CustomEvent('learncraft:course-selected', {
-          detail: { courseId: course.id, courseTitle: course.title },
-        })
+    if (activeFilter === 'ongoing') {
+      filtered = allCourses.filter(
+        (course) => getStatus(course) !== 'completed'
+      )
+    } else if (activeFilter === 'completed') {
+      filtered = allCourses.filter(
+        (course) => getStatus(course) === 'completed'
       )
     }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      filtered = filtered.filter(
+        (c) =>
+          c.title.toLowerCase().includes(q) ||
+          c.category.toLowerCase().includes(q) ||
+          (c.description && c.description.toLowerCase().includes(q))
+      )
+    }
+
+    return filtered
+  }, [activeFilter, allCourses, searchQuery])
+
+  const counts = useMemo(
+    () => ({
+      ongoing: allCourses.filter(
+        (course) => getStatus(course) !== 'completed'
+      ).length,
+      completed: allCourses.filter(
+        (course) => getStatus(course) === 'completed'
+      ).length,
+      all: allCourses.length,
+    }),
+    [allCourses]
+  )
+
+  const visibleCourses = showAll
+    ? courses
+    : courses.slice(0, 3)
+
+  function handleCourseAction(course) {
+    if (!course.id) {
+      setError('Unable to open this course: its ID is missing.')
+      return
+    }
+
+    navigate(`/courses/${course.id}`)
   }
 
   return (
     <section className="lc-courses" id="my-courses">
       <div className="lc-courses-heading">
         <div>
-          <span className="lc-courses-eyebrow">YOUR CLASSROOM</span>
+          <span className="lc-courses-eyebrow">
+            YOUR CLASSROOM
+          </span>
           <h2>My Courses</h2>
-          <p>Keep building your knowledge, one lesson at a time.</p>
+          <p>
+            Keep building your knowledge, one lesson at a time.
+          </p>
         </div>
 
         <button
           className="lc-courses-view-all"
           type="button"
           onClick={() => {
-            setActiveFilter('all')
-            setShowAll((current) => !current)
+            if (!showAll) {
+              setActiveFilter('all')
+              setShowAll(true)
+            } else {
+              setShowAll(false)
+            }
           }}
           aria-expanded={showAll}
         >
@@ -158,42 +249,66 @@ export default function CourseSection() {
       </div>
 
       <div className="lc-courses-toolbar">
-        <div className="lc-courses-tabs" role="tablist" aria-label="Filter courses">
-          {FILTERS.map((filter) => {
-            const count =
-              filter.id === 'all'
-                ? INITIAL_COURSES.length
-                : INITIAL_COURSES.filter(
-                    (course) => getStatus(course) === filter.id
-                  ).length
+        <div
+          className="lc-courses-tabs"
+          role="tablist"
+          aria-label="Filter courses"
+        >
+          {FILTERS.map((filter) => (
+            <button
+              key={filter.id}
+              type="button"
+              role="tab"
+              aria-selected={activeFilter === filter.id}
+              className={`lc-courses-tab ${
+                activeFilter === filter.id ? 'is-active' : ''
+              }`}
+              onClick={() => {
+                setActiveFilter(filter.id)
+                setShowAll(false)
+              }}
+            >
+              {filter.label}
+              <span className="lc-courses-tab-count">
+                {counts[filter.id]}
+              </span>
+            </button>
+          ))}
+        </div>
 
-            return (
-              <button
-                key={filter.id}
-                type="button"
-                role="tab"
-                aria-selected={activeFilter === filter.id}
-                className={`lc-courses-tab ${
-                  activeFilter === filter.id ? 'is-active' : ''
-                }`}
-                onClick={() => {
-                  setActiveFilter(filter.id)
-                  setShowAll(false)
-                }}
-              >
-                {filter.label}
-                <span className="lc-courses-tab-count">{count}</span>
-              </button>
-            )
-          })}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Search size={15} color="#94a3b8" />
+          <input
+            type="text"
+            placeholder="Search courses..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.85rem', width: '130px' }}
+          />
         </div>
 
         <span className="lc-courses-total">
-          {courses.length} {courses.length === 1 ? 'course' : 'courses'}
+          {courses.length}{' '}
+          {courses.length === 1 ? 'course' : 'courses'}
         </span>
       </div>
 
-      {visibleCourses.length > 0 ? (
+      {loading ? (
+        <div className="lc-courses-empty" role="status">
+          <p>Loading your courses...</p>
+        </div>
+      ) : error ? (
+        <div className="lc-courses-empty" role="alert">
+          <h3>We couldn't load your courses</h3>
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+          >
+            Try again
+          </button>
+        </div>
+      ) : visibleCourses.length > 0 ? (
         <div className="lc-courses-grid">
           {visibleCourses.map((course) => (
             <CourseCard
@@ -206,14 +321,27 @@ export default function CourseSection() {
       ) : (
         <div className="lc-courses-empty">
           <CheckCircle2 size={30} />
-          <h3>No courses in this section yet</h3>
-          <p>Choose another filter to explore your courses.</p>
-          <button
-            type="button"
-            onClick={() => setActiveFilter('all')}
-          >
-            Browse all courses
-          </button>
+
+          <h3>
+            {activeFilter === 'completed'
+              ? 'No completed courses yet'
+              : activeFilter === 'ongoing'
+                ? 'No available courses yet'
+                : 'No courses available yet'}
+          </h3>
+
+          <p>
+            Choose another filter to explore your courses.
+          </p>
+
+          {activeFilter !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setActiveFilter('all')}
+            >
+              Browse all courses
+            </button>
+          )}
         </div>
       )}
     </section>

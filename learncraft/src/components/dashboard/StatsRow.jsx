@@ -1,43 +1,52 @@
 import {
   Zap,
   BookOpenCheck,
-  Clock3,
+  Coins,
   Target,
   TrendingUp,
 } from 'lucide-react'
 
-const stats = [
-  {
-    label: 'Total XP Earned',
-    value: '1,250',
-    note: '+150 this week',
-    icon: Zap,
-    color: 'blue',
-  },
-  {
-    label: 'Lessons Completed',
-    value: '24',
-    note: 'Keep it up!',
-    icon: BookOpenCheck,
-    color: 'purple',
-  },
-  {
-    label: 'Learning Time',
-    value: '12.5h',
-    note: 'This month',
-    icon: Clock3,
-    color: 'green',
-  },
-  {
-    label: 'Daily Goal',
-    value: '1 / 2',
-    note: 'One more to go',
-    icon: Target,
-    color: 'orange',
-  },
-]
+export default function StatsRow({
+  completedLessons = 0,
+  totalCourses = 0,
+  completedCourses = 0,
+  lifetimeXp = 0,
+  coins = 0,
+  level = 1,
+}) {
+  const displayXp = lifetimeXp || completedLessons * 50
 
-export default function StatsRow() {
+  const stats = [
+    {
+      label: 'Total XP Earned',
+      value: displayXp.toLocaleString(),
+      note: `Level ${level} Achieved`,
+      icon: Zap,
+      color: 'blue',
+    },
+    {
+      label: 'Game Coins',
+      value: coins.toLocaleString(),
+      note: 'Spend in Reward Shop',
+      icon: Coins,
+      color: 'orange',
+    },
+    {
+      label: 'Lessons Completed',
+      value: String(completedLessons),
+      note: 'Verified in MongoDB',
+      icon: BookOpenCheck,
+      color: 'purple',
+    },
+    {
+      label: 'Courses Completed',
+      value: `${completedCourses} / ${totalCourses}`,
+      note: completedCourses > 0 ? 'Certificates unlocked' : 'Working toward goal',
+      icon: Target,
+      color: 'green',
+    },
+  ]
+
   return (
     <section className="lc-stats-grid" aria-label="Learning statistics">
       {stats.map(({ label, value, note, icon: Icon, color }) => (

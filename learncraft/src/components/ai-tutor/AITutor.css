@@ -403,3 +403,33 @@
     animation: none;
   }
 }
+
+.lc-ai-typing {
+  display: flex !important;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 14px !important;
+  width: fit-content;
+}
+
+.lc-ai-dot {
+  width: 6px;
+  height: 6px;
+  background: #818cf8;
+  border-radius: 50%;
+  animation: lcAIBounce 1.4s infinite ease-in-out both;
+}
+
+.lc-ai-dot:nth-child(1) { animation-delay: -0.32s; }
+.lc-ai-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes lcAIBounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+.lc-ai-message-error {
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #fca5a5 !important;
+}

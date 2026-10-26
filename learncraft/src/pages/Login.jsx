@@ -5,7 +5,6 @@ import {
   EyeOff,
   GraduationCap,
   Users,
-  House,
   Mail,
   LockKeyhole,
   ArrowRight,
@@ -15,7 +14,9 @@ import {
   ChartNoAxesColumnIncreasing,
   Sparkles,
 } from 'lucide-react'
-import { authApi } from '../services/api'
+import { useAuth } from '../context/AuthContext'
+import GoogleSignInButton from '../components/auth/GoogleSignInButton'
+import AccountLinkingModal from '../components/auth/AccountLinkingModal'
 import './Login.css'
 
 const roles = [
@@ -49,6 +50,7 @@ const features = [
 
 export default function Login() {
   const navigate = useNavigate()
+  const { login, googleLogin } = useAuth()
 
   const [role, setRole] = useState('Student')
   const [showPassword, setShowPassword] = useState(false)
@@ -58,13 +60,66 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Google sign in states
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [pendingGoogleToken, setPendingGoogleToken] = useState(null)
+  const [linkingEmail, setLinkingEmail] = useState('')
+  const [linkingError, setLinkingError] = useState('')
+
+  async function handleGoogleSuccess(idToken) {
+    setError('')
+    setGoogleLoading(true)
+    try {
+      const result = await googleLogin({ idToken })
+      const loggedInUser = result.data?.user
+      if (loggedInUser?.role === 'instructor' || loggedInUser?.role === 'admin') {
+        navigate('/instructor')
+      } else {
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      if (err.data?.requiresLinking) {
+        setPendingGoogleToken(idToken)
+        setLinkingEmail(err.data.email || '')
+        setLinkingError('')
+      } else {
+        setError(err.message || 'Google sign-in failed. Please try again.')
+      }
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
+  async function handleLinkAccountConfirm({ linkAccountPassword }) {
+    if (!pendingGoogleToken) return
+    setGoogleLoading(true)
+    setLinkingError('')
+    try {
+      const result = await googleLogin({
+        idToken: pendingGoogleToken,
+        linkAccountPassword,
+      })
+      setPendingGoogleToken(null)
+      const loggedInUser = result.data?.user
+      if (loggedInUser?.role === 'instructor' || loggedInUser?.role === 'admin') {
+        navigate('/instructor')
+      } else {
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      setLinkingError(err.message || 'Incorrect password for account linking.')
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
     setError('')
     setLoading(true)
 
     try {
-      const result = await authApi.login({
+      const result = await login({
         email: email.trim(),
         password,
       })
@@ -76,19 +131,11 @@ export default function Login() {
 
       const loggedInUser = result.data?.user
 
-      // The backend currently supports student registration.
-      // Do not use the selected role tab to grant permissions.
-      if (
-        loggedInUser?.role &&
-        role.toLowerCase() !== loggedInUser.role
-      ) {
-        setError(
-          `This account is registered as ${loggedInUser.role}. Please select the matching account type.`
-        )
-        return
+      if (loggedInUser?.role === 'instructor' || loggedInUser?.role === 'admin') {
+        navigate('/instructor')
+      } else {
+        navigate('/dashboard')
       }
-
-      navigate('/dashboard')
     } catch (err) {
       setError(
         err.message || 'Login failed. Please check your credentials.'
@@ -256,16 +303,12 @@ export default function Login() {
               <span>or</span>
             </div>
 
-            <button
-              type="button"
-              className="social-button"
-              onClick={() =>
-                alert('Google sign-in will be integrated later.')
-              }
-            >
-              <span className="google-mark">G</span>
-              Continue with Google
-            </button>
+            <GoogleSignInButton
+              onSuccess={handleGoogleSuccess}
+              onError={(msg) => setError(msg)}
+              loading={googleLoading}
+              text="continue_with"
+            />
 
             <button
               type="button"
@@ -292,6 +335,18 @@ export default function Login() {
           </div>
         </section>
       </div>
+
+      <AccountLinkingModal
+        isOpen={Boolean(pendingGoogleToken)}
+        email={linkingEmail}
+        onConfirm={handleLinkAccountConfirm}
+        onCancel={() => {
+          setPendingGoogleToken(null)
+          setLinkingError('')
+        }}
+        loading={googleLoading}
+        error={linkingError}
+      />
     </main>
   )
 }

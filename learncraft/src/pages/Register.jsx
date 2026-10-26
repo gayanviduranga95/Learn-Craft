@@ -17,6 +17,9 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { authApi } from '../services/api'
+import { useAuth } from '../context/AuthContext'
+import GoogleSignInButton from '../components/auth/GoogleSignInButton'
+import AccountLinkingModal from '../components/auth/AccountLinkingModal'
 import './Login.css'
 import './Register.css'
 
@@ -50,6 +53,7 @@ const features = [
 
 export default function Register() {
   const navigate = useNavigate()
+  const { googleLogin } = useAuth()
 
   const [role, setRole] = useState('Student')
   const [name, setName] = useState('')
@@ -63,6 +67,59 @@ export default function Register() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Google registration states
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [pendingGoogleToken, setPendingGoogleToken] = useState(null)
+  const [linkingEmail, setLinkingEmail] = useState('')
+  const [linkingError, setLinkingError] = useState('')
+
+  async function handleGoogleSuccess(idToken) {
+    setError('')
+    setGoogleLoading(true)
+    try {
+      const result = await googleLogin({ idToken })
+      const loggedInUser = result.data?.user
+      if (loggedInUser?.role === 'instructor' || loggedInUser?.role === 'admin') {
+        navigate('/instructor')
+      } else {
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      if (err.data?.requiresLinking) {
+        setPendingGoogleToken(idToken)
+        setLinkingEmail(err.data.email || '')
+        setLinkingError('')
+      } else {
+        setError(err.message || 'Google registration failed. Please try again.')
+      }
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
+  async function handleLinkAccountConfirm({ linkAccountPassword }) {
+    if (!pendingGoogleToken) return
+    setGoogleLoading(true)
+    setLinkingError('')
+    try {
+      const result = await googleLogin({
+        idToken: pendingGoogleToken,
+        linkAccountPassword,
+      })
+      setPendingGoogleToken(null)
+      const loggedInUser = result.data?.user
+      if (loggedInUser?.role === 'instructor' || loggedInUser?.role === 'admin') {
+        navigate('/instructor')
+      } else {
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      setLinkingError(err.message || 'Incorrect password for account linking.')
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
 
   const availableSubjects = [
     'Mathematics',
@@ -83,13 +140,6 @@ export default function Register() {
   async function handleSubmit(event) {
     event.preventDefault()
     setError('')
-
-    if (role === 'Teacher') {
-      setError(
-        'Teacher registration is not available yet. Please register as a student for now.'
-      )
-      return
-    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.')
@@ -118,6 +168,7 @@ export default function Register() {
         name: name.trim(),
         email: email.trim(),
         password,
+        role: role === 'Teacher' ? 'instructor' : 'student',
       })
 
       if (!result.success) {
@@ -387,6 +438,17 @@ export default function Register() {
               </button>
             </form>
 
+            <div className="separator">
+              <span>or</span>
+            </div>
+
+            <GoogleSignInButton
+              onSuccess={handleGoogleSuccess}
+              onError={(msg) => setError(msg)}
+              loading={googleLoading}
+              text="signup_with"
+            />
+
             <p className="register-prompt">
               Already have an account?
               <a href="/login">
@@ -396,6 +458,18 @@ export default function Register() {
           </div>
         </section>
       </div>
+
+      <AccountLinkingModal
+        isOpen={Boolean(pendingGoogleToken)}
+        email={linkingEmail}
+        onConfirm={handleLinkAccountConfirm}
+        onCancel={() => {
+          setPendingGoogleToken(null)
+          setLinkingError('')
+        }}
+        loading={googleLoading}
+        error={linkingError}
+      />
     </main>
   )
 }
