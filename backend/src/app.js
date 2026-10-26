@@ -33,16 +33,39 @@ const allowedOrigins = process.env.CLIENT_ORIGIN
   ? process.env.CLIENT_ORIGIN.split(",").map((o) => o.trim().replace(/\/+$/, ""))
   : ["http://localhost:5173"];
 
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // allow same-origin, curl, server-to-server, health checks
+  const clean = origin.trim().replace(/\/+$/, "");
+
+  if (allowedOrigins.includes("*") || allowedOrigins.includes(clean)) {
+    return true;
+  }
+
+  // Allow all vercel.app deployments (production and preview branches)
+  if (clean.endsWith(".vercel.app")) {
+    return true;
+  }
+
+  // Allow localhost on any port in development
+  if (clean.startsWith("http://localhost:") || clean.startsWith("http://127.0.0.1:")) {
+    return true;
+  }
+
+  return false;
+}
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      const cleanOrigin = origin ? origin.replace(/\/+$/, "") : null;
-      if (!cleanOrigin || allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes("*")) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
-      return callback(new Error(`CORS origin not allowed: ${origin}`));
+      return callback(null, false);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+    exposedHeaders: ["Set-Cookie"],
   })
 );
 
@@ -77,17 +100,23 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api/health", healthRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/courses", courseRoutes);
-app.use("/api/lessons", lessonRoutes);
-app.use("/api/quizzes", quizRoutes);
-app.use("/api/certificates", certificateRoutes);
-app.use("/api/ai", aiRoutes);
-app.use("/api/gamification", gamificationRoutes);
-app.use("/api/leaderboard", leaderboardRoutes);
-app.use("/api/arcade", arcadeRoutes);
-app.use("/api/shop", shopRoutes);
+const apiRouter = express.Router();
+
+apiRouter.use("/health", healthRoutes);
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/courses", courseRoutes);
+apiRouter.use("/lessons", lessonRoutes);
+apiRouter.use("/quizzes", quizRoutes);
+apiRouter.use("/certificates", certificateRoutes);
+apiRouter.use("/ai", aiRoutes);
+apiRouter.use("/gamification", gamificationRoutes);
+apiRouter.use("/leaderboard", leaderboardRoutes);
+apiRouter.use("/arcade", arcadeRoutes);
+apiRouter.use("/shop", shopRoutes);
+
+// Mount under both /api and / so all endpoints work seamlessly whether or not Vercel strips /api
+app.use("/api", apiRouter);
+app.use("/", apiRouter);
 
 app.use((req, res) => {
   res.status(404).json({

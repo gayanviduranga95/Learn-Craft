@@ -104,6 +104,31 @@ async function runTests() {
 
     // 2. Authentication - Student Registration
     console.log("\n[2] Authentication - Student & Instructor Registration");
+
+    // Verify CORS preflight OPTIONS returns 204 with allow-methods
+    const corsOptionsRes = await request("/api/auth/register", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://learncraft.vercel.app",
+        "Access-Control-Request-Method": "POST",
+      },
+    });
+    assert(corsOptionsRes.status === 204, "CORS preflight OPTIONS request returns 204 No Content for Vercel deployment");
+
+    // Safe POST verification on registration with missing body (proves route reachability without credentials)
+    const emptyPostReg = await request("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    assert(emptyPostReg.status === 400 && emptyPostReg.data?.message === "Name, email, and password are required.", "POST /api/auth/register is reachable and validates missing fields with 400");
+
+    // Verify dual mounting under / (without /api) in case Vercel rewrites strip /api
+    const rootRouteReg = await request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    assert(rootRouteReg.status === 400 && rootRouteReg.data?.message === "Name, email, and password are required.", "POST /auth/register (without /api prefix) is reachable via dual-mounted router");
+
     const testStamp = Date.now();
     const studentEmail = `student_${testStamp}@test.local`;
     const instructorEmail = `instructor_${testStamp}@test.local`;

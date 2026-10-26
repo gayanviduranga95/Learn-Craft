@@ -265,7 +265,13 @@ export default function GoogleConfigModal({
                 </a>
               </li>
               <li>
-                Add JavaScript Origin: <code style={{ color: "#fcd34d", background: "rgba(0,0,0,0.4)", padding: "1px 5px", borderRadius: "4px" }}>http://localhost:5173</code> (and your Vercel URL in production)
+                Add <strong>Authorized JavaScript Origins</strong>:
+                <div style={{ marginTop: "3px" }}>
+                  <code style={{ color: "#fcd34d", background: "rgba(0,0,0,0.4)", padding: "1px 5px", borderRadius: "4px" }}>http://localhost:5173</code> (local) and <code style={{ color: "#fcd34d", background: "rgba(0,0,0,0.4)", padding: "1px 5px", borderRadius: "4px" }}>https://your-frontend.vercel.app</code> (production).
+                </div>
+                <small style={{ color: "#94a3b8", display: "block", marginTop: "2px" }}>
+                  *If the origin is missing in Google Cloud Console, Google blocks popups with <code>origin_mismatch</code>.
+                </small>
               </li>
               <li>
                 Paste your Client ID into both files:

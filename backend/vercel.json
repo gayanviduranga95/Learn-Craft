@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/api/index.js"
+      "src": "/(.*)",
+      "dest": "api/index.js",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
     }
   ]
 }

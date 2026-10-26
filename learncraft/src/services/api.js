@@ -1,8 +1,29 @@
-const rawApiBase =
+let rawApiBase =
   import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.DEV ? "http://localhost:5000/api" : "/api");
 
+rawApiBase = rawApiBase ? rawApiBase.trim() : "";
+
+// If configured without a protocol (e.g. "learn-craft-seven.vercel.app" or "learn-craft-seven.vercel.app/api"),
+// automatically prepend "https://" to prevent the browser from treating the domain as a relative path!
+if (
+  rawApiBase &&
+  !rawApiBase.startsWith("http://") &&
+  !rawApiBase.startsWith("https://") &&
+  !rawApiBase.startsWith("/")
+) {
+  rawApiBase = `https://${rawApiBase}`;
+}
+
 const API_BASE_URL = rawApiBase.replace(/\/+$/, "");
+
+if (import.meta.env.PROD && !import.meta.env.VITE_API_BASE_URL) {
+  console.warn(
+    "[LearnCraft Deployment] VITE_API_BASE_URL is not set in Vercel project settings.\n" +
+    "Requests to /api target this frontend domain, which causes static 405 errors on POST.\n" +
+    "Set VITE_API_BASE_URL=https://learn-craft-seven.vercel.app in Vercel Environment Variables and redeploy."
+  );
+}
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -23,7 +44,10 @@ async function request(path, options = {}) {
   }
 
   if (!response.ok) {
-    const errorMsg = typeof data === "object" && data?.message ? data.message : "Something went wrong.";
+    let errorMsg = typeof data === "object" && data?.message ? data.message : "Something went wrong.";
+    if (response.status === 405) {
+      errorMsg = "API returned HTTP 405 Method Not Allowed. Ensure VITE_API_BASE_URL is set to your deployed backend URL (https://your-backend.vercel.app/api) in Vercel project settings.";
+    }
     const err = new Error(errorMsg);
     err.status = response.status;
     err.data = typeof data === "object" ? data : null;
