@@ -73,8 +73,19 @@ async function runTests() {
     }
   }
 
+  let mongod = null;
   try {
-    await connectDatabase();
+    try {
+      await connectDatabase();
+    } catch (atlasErr) {
+      console.log(`[Notice] Atlas connection unavailable (${atlasErr.message}).`);
+      console.log("Using MongoDB In-Memory Server for isolated local testing...\n");
+      const { MongoMemoryServer } = await import("mongodb-memory-server");
+      mongod = await MongoMemoryServer.create();
+      const memUri = mongod.getUri();
+      await mongoose.connect(memUri);
+      console.log("Connected to In-Memory MongoDB successfully.\n");
+    }
 
     // Start server on an ephemeral port
     server = http.createServer(app);
@@ -82,6 +93,9 @@ async function runTests() {
     const port = server.address().port;
     baseUrl = `http://localhost:${port}`;
     console.log(`Test server running on port ${port}\n`);
+
+    // Verify trust proxy is configured to 1
+    assert(app.get("trust proxy") === 1, "Express trust proxy is configured to 1 for reverse proxy/Vercel support");
 
     // 1. Health check
     console.log("[1] Health Check & Root API");
@@ -132,6 +146,18 @@ async function runTests() {
 
     // 3. Login & HttpOnly Cookie
     console.log("\n[3] Login & HttpOnly Cookie Verification");
+
+    // Verify GET /api/auth/login returns 405 Method Not Allowed (addresses browser direct navigation)
+    const getLoginRes = await request("/api/auth/login", { method: "GET" });
+    assert(getLoginRes.status === 405 && getLoginRes.data?.success === false, "GET /api/auth/login returns 405 Method Not Allowed with explanatory message");
+
+    // Safe POST verification with missing credentials (verifies route reachability on Vercel without real credentials)
+    const emptyPostLogin = await request("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    assert(emptyPostLogin.status === 400 && emptyPostLogin.data?.message === "Email and password are required.", "POST /api/auth/login is reachable and validates missing credentials with 400");
+
     const wrongLogin = await request("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email: studentEmail, password: "WrongPassword!" }),
@@ -809,6 +835,9 @@ async function runTests() {
       await new Promise((resolve) => server.close(resolve));
     }
     await mongoose.disconnect();
+    if (mongod) {
+      await mongod.stop();
+    }
   }
 
   console.log("\n==========================================");

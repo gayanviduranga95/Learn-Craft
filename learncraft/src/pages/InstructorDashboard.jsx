@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   BookOpen,
   Users,
@@ -239,13 +239,13 @@ export default function InstructorDashboard() {
     <div className="lc-inst-page">
       {/* Top Navbar */}
       <header className="lc-inst-header">
-        <a href="/instructor" className="lc-inst-brand">
+        <Link to="/instructor" className="lc-inst-brand">
           <Sparkles size={24} color="#6366f1" />
           <span style={{ fontWeight: 800, fontSize: "1.2rem", letterSpacing: "-0.02em" }}>
             Learn<span style={{ color: "#6366f1" }}>Craft</span>
           </span>
           <span className="lc-inst-brand-badge">Instructor Studio</span>
-        </a>
+        </Link>
 
         <div className="lc-inst-nav-actions">
           <button
