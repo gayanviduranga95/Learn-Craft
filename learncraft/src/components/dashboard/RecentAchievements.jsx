@@ -1,30 +1,37 @@
-import { Trophy, Star, Target, Medal, ArrowRight } from 'lucide-react'
+import { Trophy, Star, Target, Medal } from 'lucide-react'
 
-const achievements = [
-  {
-    title: 'First steps',
-    description: 'Complete your first lesson',
-    icon: Star,
-    color: 'blue',
-    earned: true,
-  },
-  {
-    title: 'Goal getter',
-    description: 'Work towards your daily goal',
-    icon: Target,
-    color: 'green',
-    earned: true,
-  },
-  {
-    title: 'Knowledge seeker',
-    description: 'Complete five lessons',
-    icon: Medal,
-    color: 'purple',
-    earned: false,
-  },
-]
+export default function RecentAchievements({ completedLessons = 0, completedCourses = 0 }) {
+  const achievements = [
+    {
+      title: 'First steps',
+      description: 'Complete your first lesson',
+      icon: Star,
+      color: 'blue',
+      earned: completedLessons >= 1,
+    },
+    {
+      title: 'Goal getter',
+      description: 'Complete three lessons',
+      icon: Target,
+      color: 'green',
+      earned: completedLessons >= 3,
+    },
+    {
+      title: 'Knowledge seeker',
+      description: 'Complete five lessons',
+      icon: Medal,
+      color: 'purple',
+      earned: completedLessons >= 5,
+    },
+    {
+      title: 'Course Master',
+      description: 'Complete 100% of a course curriculum',
+      icon: Trophy,
+      color: 'orange',
+      earned: completedCourses >= 1,
+    },
+  ]
 
-export default function RecentAchievements() {
   return (
     <section className="lc-panel lc-achievements-panel">
       <div className="lc-panel-heading">
@@ -45,17 +52,14 @@ export default function RecentAchievements() {
               <strong>{title}</strong>
               <small>{description}</small>
             </span>
-            {earned && <span className="lc-earned-check">✓</span>}
+            {earned ? (
+              <span className="lc-earned-check" title="Earned">✓</span>
+            ) : (
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Locked</span>
+            )}
           </div>
         ))}
       </div>
-
-      <button
-        className="lc-panel-link"
-        onClick={() => window.alert('Connect this action to your achievements page.')}
-      >
-        View all achievements <ArrowRight size={15} />
-      </button>
     </section>
   )
 }

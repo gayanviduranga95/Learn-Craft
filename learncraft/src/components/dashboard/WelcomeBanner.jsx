@@ -8,9 +8,12 @@ import {
 } from 'lucide-react'
 
 import heroImage from '../../assets/hero.png'
+import { useAuth } from '../../context/AuthContext'
 import './WelcomeBanner.css'
 
 export default function WelcomeBanner() {
+  const { user } = useAuth()
+
   const handleStartLearning = () => {
     const coursesSection = document.getElementById('my-courses')
 
@@ -36,9 +39,9 @@ export default function WelcomeBanner() {
         </div>
 
         <h1 id="lc-hero-title">
-          Good Morning,
+          Good Day,
           <br />
-          <span className="lc-hero-name">Student!</span>
+          <span className="lc-hero-name">{user?.name ? `${user.name}!` : 'Learner!'}</span>
         </h1>
 
         <p className="lc-hero-description">

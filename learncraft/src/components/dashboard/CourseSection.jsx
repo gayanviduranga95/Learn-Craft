@@ -9,6 +9,7 @@ import {
   Globe2,
   Palette,
   CheckCircle2,
+  Search,
 } from 'lucide-react'
 import { courseApi } from '../../services/api'
 import CourseCard from './CourseCard'
@@ -116,6 +117,7 @@ export default function CourseSection() {
   const navigate = useNavigate()
 
   const [activeFilter, setActiveFilter] = useState('ongoing')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showAll, setShowAll] = useState(false)
   const [allCourses, setAllCourses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -161,21 +163,30 @@ export default function CourseSection() {
   }, [])
 
   const courses = useMemo(() => {
-    if (activeFilter === 'all') {
-      return allCourses
-    }
+    let filtered = allCourses
 
     if (activeFilter === 'ongoing') {
-      // Include courses that can be started or are in progress.
-      return allCourses.filter(
+      filtered = allCourses.filter(
         (course) => getStatus(course) !== 'completed'
+      )
+    } else if (activeFilter === 'completed') {
+      filtered = allCourses.filter(
+        (course) => getStatus(course) === 'completed'
       )
     }
 
-    return allCourses.filter(
-      (course) => getStatus(course) === 'completed'
-    )
-  }, [activeFilter, allCourses])
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      filtered = filtered.filter(
+        (c) =>
+          c.title.toLowerCase().includes(q) ||
+          c.category.toLowerCase().includes(q) ||
+          (c.description && c.description.toLowerCase().includes(q))
+      )
+    }
+
+    return filtered
+  }, [activeFilter, allCourses, searchQuery])
 
   const counts = useMemo(
     () => ({
@@ -263,6 +274,17 @@ export default function CourseSection() {
               </span>
             </button>
           ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Search size={15} color="#94a3b8" />
+          <input
+            type="text"
+            placeholder="Search courses..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.85rem', width: '130px' }}
+          />
         </div>
 
         <span className="lc-courses-total">

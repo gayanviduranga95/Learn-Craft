@@ -6,38 +6,41 @@ import {
   TrendingUp,
 } from 'lucide-react'
 
-const stats = [
-  {
-    label: 'Total XP Earned',
-    value: '1,250',
-    note: '+150 this week',
-    icon: Zap,
-    color: 'blue',
-  },
-  {
-    label: 'Lessons Completed',
-    value: '24',
-    note: 'Keep it up!',
-    icon: BookOpenCheck,
-    color: 'purple',
-  },
-  {
-    label: 'Learning Time',
-    value: '12.5h',
-    note: 'This month',
-    icon: Clock3,
-    color: 'green',
-  },
-  {
-    label: 'Daily Goal',
-    value: '1 / 2',
-    note: 'One more to go',
-    icon: Target,
-    color: 'orange',
-  },
-]
+export default function StatsRow({ completedLessons = 0, totalCourses = 0, completedCourses = 0 }) {
+  const xp = completedLessons * 50
+  const hours = (completedLessons * 0.25).toFixed(1)
 
-export default function StatsRow() {
+  const stats = [
+    {
+      label: 'Total XP Earned',
+      value: xp.toLocaleString(),
+      note: `${completedLessons} lessons finished`,
+      icon: Zap,
+      color: 'blue',
+    },
+    {
+      label: 'Lessons Completed',
+      value: String(completedLessons),
+      note: 'Verified in MongoDB',
+      icon: BookOpenCheck,
+      color: 'purple',
+    },
+    {
+      label: 'Learning Time',
+      value: `${hours}h`,
+      note: 'Engaged study',
+      icon: Clock3,
+      color: 'green',
+    },
+    {
+      label: 'Courses Completed',
+      value: `${completedCourses} / ${totalCourses}`,
+      note: completedCourses > 0 ? 'Certificates unlocked' : 'Working toward goal',
+      icon: Target,
+      color: 'orange',
+    },
+  ]
+
   return (
     <section className="lc-stats-grid" aria-label="Learning statistics">
       {stats.map(({ label, value, note, icon: Icon, color }) => (

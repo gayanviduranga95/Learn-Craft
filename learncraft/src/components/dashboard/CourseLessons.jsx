@@ -1,4 +1,3 @@
-
 import './CourseLessons.css'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -12,44 +11,13 @@ import {
   Trophy,
   ChevronLeft,
   ChevronRight,
+  Award,
+  Download,
+  ClipboardList,
 } from 'lucide-react'
-import { courseApi } from '../../services/api'
-
-const API_BASE_URL = 'http://localhost:5000/api'
-
-async function fetchLessons(courseId) {
-  const response = await fetch(
-    `${API_BASE_URL}/lessons/courses/${courseId}`,
-    { credentials: 'include' }
-  )
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Unable to load lessons.')
-  }
-
-  return data
-}
-
-async function completeLesson(courseId, lessonId) {
-  const response = await fetch(
-    `${API_BASE_URL}/lessons/courses/${courseId}/lessons/${lessonId}/complete`,
-    {
-      method: 'POST',
-      credentials: 'include',
-      headers: { Accept: 'application/json' },
-    }
-  )
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Unable to complete lesson.')
-  }
-
-  return data
-}
+import { lessonApi, certificateApi } from '../../services/api'
+import QuizModal from '../quiz/QuizModal'
+import AITutorWidget from '../ai-tutor/AITutorWidget'
 
 export default function CourseLessons() {
   const { courseId } = useParams()
@@ -61,6 +29,9 @@ export default function CourseLessons() {
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState(null)
   const [error, setError] = useState('')
+  const [showQuizModal, setShowQuizModal] = useState(false)
+  const [downloadingCert, setDownloadingCert] = useState(false)
+  const [certSuccess, setCertSuccess] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -70,30 +41,19 @@ export default function CourseLessons() {
         setLoading(true)
         setError('')
 
-        const [coursesData, lessonsData] = await Promise.all([
-          courseApi.getCourses(),
-          fetchLessons(courseId),
-        ])
+        const lessonsData = await lessonApi.getCourseLessons(courseId)
 
-        const currentCourse = coursesData.find(
-          (item) =>
-            String(item._id ?? item.id) === String(courseId)
-        )
-
-        if (!currentCourse) {
+        if (!lessonsData || !lessonsData.course) {
           throw new Error('Course not found.')
         }
 
         if (cancelled) return
 
         setCourse({
-          ...currentCourse,
-          id: currentCourse._id ?? currentCourse.id,
-          title:
-            currentCourse.title ??
-            currentCourse.name ??
-            'Untitled course',
-          description: currentCourse.description ?? '',
+          id: String(lessonsData.course.id || lessonsData.course._id),
+          title: lessonsData.course.title || 'Untitled course',
+          description: lessonsData.course.description || '',
+          totalLessons: lessonsData.course.totalLessons || 0,
         })
 
         const loadedLessons = (lessonsData.lessons ?? [])
@@ -168,7 +128,7 @@ export default function CourseLessons() {
       setSavingId(lesson.id)
       setError('')
 
-      await completeLesson(courseId, lesson.id)
+      await lessonApi.completeLesson(courseId, lesson.id)
 
       const updatedLessons = lessons.map((item) =>
         item.id === lesson.id
@@ -188,13 +148,24 @@ export default function CourseLessons() {
       if (nextLesson) {
         setSelectedLessonId(nextLesson.id)
       }
-
-      // Refresh dashboard progress if this callback is provided.
-      // The dedicated route can work without it.
     } catch (err) {
       setError(err.message || 'Unable to save progress.')
     } finally {
       setSavingId(null)
+    }
+  }
+
+  async function handleDownloadCertificate() {
+    try {
+      setDownloadingCert(true)
+      setError('')
+      setCertSuccess('')
+      await certificateApi.downloadCertificate(courseId, course?.title || 'Course')
+      setCertSuccess('Your verified certificate has been downloaded successfully!')
+    } catch (err) {
+      setError(err.message || 'Unable to download certificate.')
+    } finally {
+      setDownloadingCert(false)
     }
   }
 
@@ -226,14 +197,25 @@ export default function CourseLessons() {
 
   return (
     <section className="lc-course-lessons">
-      <button
-        className="lc-lessons-back"
-        type="button"
-        onClick={handleBack}
-      >
-        <ArrowLeft size={17} />
-        Back to dashboard
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button
+          className="lc-lessons-back"
+          type="button"
+          onClick={handleBack}
+        >
+          <ArrowLeft size={17} />
+          Back to dashboard
+        </button>
+
+        <button
+          type="button"
+          className="lc-inst-btn lc-inst-btn-secondary"
+          style={{ padding: '8px 14px', borderRadius: '8px', cursor: 'pointer' }}
+          onClick={() => setShowQuizModal(true)}
+        >
+          <ClipboardList size={16} /> Take Course Quiz
+        </button>
+      </div>
 
       <header className="lc-lessons-header">
         <span className="lc-courses-eyebrow">YOUR CLASSROOM</span>
@@ -262,19 +244,44 @@ export default function CourseLessons() {
         </div>
       </header>
 
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" style={{ color: '#ef4444', marginBottom: '16px' }}>{error}</p>}
+      {certSuccess && (
+        <div style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+          {certSuccess}
+        </div>
+      )}
 
       {allCompleted && (
-        <div className="lc-course-complete-banner">
+        <div className="lc-course-complete-banner" style={{ flexWrap: 'wrap', gap: '16px' }}>
           <div className="lc-course-complete-icon">
-            <Trophy size={26} />
+            <Trophy size={28} />
           </div>
-          <div>
-            <h3>Congratulations! Course completed.</h3>
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <h3>Congratulations! Course 100% Completed.</h3>
             <p>
-              You've finished every lesson in {course.title}.
-              Great work!
+              You've mastered every lesson in {course.title}.
+              Your official completion credential is ready to download!
             </p>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              type="button"
+              className="lc-primary-button"
+              style={{ background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: '#fff', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
+              disabled={downloadingCert}
+              onClick={handleDownloadCertificate}
+            >
+              <Download size={18} />
+              {downloadingCert ? 'Generating Certificate...' : 'Download PDF Certificate'}
+            </button>
+            <button
+              type="button"
+              className="lc-primary-button"
+              style={{ background: '#6366f1', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
+              onClick={() => setShowQuizModal(true)}
+            >
+              <Award size={18} /> Test Knowledge
+            </button>
           </div>
         </div>
       )}
@@ -342,7 +349,7 @@ export default function CourseLessons() {
 
               <div className="lc-lesson-reading">
                 {selectedLesson.content ||
-                  'Lesson content coming soon.'}
+                  'Welcome to this lesson! Study the core principles and when ready, mark this lesson as completed to track your progress.'}
               </div>
 
               {!selectedLesson.completed && (
@@ -409,6 +416,16 @@ export default function CourseLessons() {
           )}
         </article>
       </div>
+
+      {/* Embedded contextual AI Tutor */}
+      <AITutorWidget context={{ courseTitle: course.title, lessonTitle: selectedLesson?.title }} />
+
+      {/* Interactive Assessment Quiz Modal */}
+      <QuizModal
+        courseId={courseId}
+        isOpen={showQuizModal}
+        onClose={() => setShowQuizModal(false)}
+      />
     </section>
   )
 }

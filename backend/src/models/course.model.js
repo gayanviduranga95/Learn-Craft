@@ -21,7 +21,13 @@ const courseSchema = new mongoose.Schema(
     totalLessons: {
       type: Number,
       required: true,
-      min: 1,
+      min: 0,
+      default: 0,
+    },
+    instructor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
     thumbnail: {
       type: String,

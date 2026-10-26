@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 import Course from "../models/course.model.js";
 import Lesson from "../models/lesson.model.js";
@@ -12,19 +11,23 @@ export async function getCourseLessons(req, res, next) {
       return res.status(400).json({ message: "Invalid course ID." });
     }
 
-    const course = await Course.findOne({
-      _id: courseId,
-      isPublished: true,
-    }).lean();
+    const course = await Course.findById(courseId).lean();
 
     if (!course) {
       return res.status(404).json({ message: "Course not found." });
     }
 
-    const lessons = await Lesson.find({
-      course: courseId,
-      isPublished: true,
-    })
+    // Instructors viewing their course should see all lessons; students see published only
+    const isInstructor =
+      req.auth.role === "admin" ||
+      (course.instructor && String(course.instructor) === req.auth.userId);
+
+    const query = { course: courseId };
+    if (!isInstructor) {
+      query.isPublished = true;
+    }
+
+    const lessons = await Lesson.find(query)
       .sort({ order: 1 })
       .lean();
 
@@ -41,7 +44,9 @@ export async function getCourseLessons(req, res, next) {
       course: {
         id: String(course._id),
         title: course.title,
+        description: course.description,
         totalLessons: lessons.length,
+        isInstructor,
       },
       lessons: lessons.map((lesson) => ({
         id: String(lesson._id),
@@ -50,6 +55,7 @@ export async function getCourseLessons(req, res, next) {
         order: lesson.order,
         durationMinutes: lesson.durationMinutes,
         content: lesson.content,
+        isPublished: lesson.isPublished,
         completed: completedIds.has(String(lesson._id)),
       })),
     });
@@ -130,6 +136,160 @@ export async function completeLesson(req, res, next) {
           : 0,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createLesson(req, res, next) {
+  try {
+    const { courseId } = req.params;
+    const { title, description, content, durationMinutes, order, isPublished } = req.body ?? {};
+
+    if (!mongoose.isValidObjectId(courseId)) {
+      return res.status(400).json({ message: "Invalid course ID." });
+    }
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ message: "Lesson title is required." });
+    }
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found." });
+    }
+
+    // Ownership check
+    if (
+      course.instructor &&
+      String(course.instructor) !== req.auth.userId &&
+      req.auth.role !== "admin"
+    ) {
+      return res.status(403).json({
+        message: "You do not have permission to add lessons to this course.",
+      });
+    }
+
+    let lessonOrder = Number(order);
+    if (!lessonOrder || lessonOrder < 1) {
+      const highestLesson = await Lesson.findOne({ course: courseId }).sort({ order: -1 });
+      lessonOrder = highestLesson ? highestLesson.order + 1 : 1;
+    }
+
+    const lesson = await Lesson.create({
+      course: courseId,
+      title: title.trim(),
+      description: (description || "").trim(),
+      content: (content || "").trim(),
+      durationMinutes: Math.max(1, Number(durationMinutes) || 10),
+      order: lessonOrder,
+      isPublished: isPublished !== undefined ? Boolean(isPublished) : true,
+    });
+
+    // Update totalLessons in Course
+    const count = await Lesson.countDocuments({ course: courseId, isPublished: true });
+    course.totalLessons = count;
+    await course.save();
+
+    res.status(201).json({
+      message: "Lesson created successfully.",
+      lesson: {
+        ...lesson.toObject(),
+        id: String(lesson._id),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateLesson(req, res, next) {
+  try {
+    const { lessonId } = req.params;
+    const { title, description, content, durationMinutes, order, isPublished } = req.body ?? {};
+
+    if (!mongoose.isValidObjectId(lessonId)) {
+      return res.status(400).json({ message: "Invalid lesson ID." });
+    }
+
+    const lesson = await Lesson.findById(lessonId);
+    if (!lesson) {
+      return res.status(404).json({ message: "Lesson not found." });
+    }
+
+    const course = await Course.findById(lesson.course);
+    if (
+      course &&
+      course.instructor &&
+      String(course.instructor) !== req.auth.userId &&
+      req.auth.role !== "admin"
+    ) {
+      return res.status(403).json({
+        message: "You do not have permission to modify this lesson.",
+      });
+    }
+
+    if (title !== undefined) lesson.title = title.trim();
+    if (description !== undefined) lesson.description = description.trim();
+    if (content !== undefined) lesson.content = content.trim();
+    if (durationMinutes !== undefined) lesson.durationMinutes = Math.max(1, Number(durationMinutes) || 10);
+    if (order !== undefined) lesson.order = Number(order);
+    if (isPublished !== undefined) lesson.isPublished = Boolean(isPublished);
+
+    await lesson.save();
+
+    if (course) {
+      const count = await Lesson.countDocuments({ course: course._id, isPublished: true });
+      course.totalLessons = count;
+      await course.save();
+    }
+
+    res.json({
+      message: "Lesson updated successfully.",
+      lesson: {
+        ...lesson.toObject(),
+        id: String(lesson._id),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteLesson(req, res, next) {
+  try {
+    const { lessonId } = req.params;
+
+    if (!mongoose.isValidObjectId(lessonId)) {
+      return res.status(400).json({ message: "Invalid lesson ID." });
+    }
+
+    const lesson = await Lesson.findById(lessonId);
+    if (!lesson) {
+      return res.status(404).json({ message: "Lesson not found." });
+    }
+
+    const course = await Course.findById(lesson.course);
+    if (
+      course &&
+      course.instructor &&
+      String(course.instructor) !== req.auth.userId &&
+      req.auth.role !== "admin"
+    ) {
+      return res.status(403).json({
+        message: "You do not have permission to delete this lesson.",
+      });
+    }
+
+    await Lesson.findByIdAndDelete(lessonId);
+
+    if (course) {
+      const count = await Lesson.countDocuments({ course: course._id, isPublished: true });
+      course.totalLessons = count;
+      await course.save();
+    }
+
+    res.json({ message: "Lesson deleted successfully." });
   } catch (error) {
     next(error);
   }

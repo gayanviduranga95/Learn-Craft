@@ -1,55 +1,69 @@
 import {
   ClipboardCheck,
   Compass,
-  Brain,
-  Trophy,
+  Bot,
+  Award,
   ArrowUpRight,
 } from 'lucide-react'
 
-const actions = [
-  {
-    title: 'Take a quiz',
-    description: 'Test what you know',
-    icon: ClipboardCheck,
-    color: 'blue',
-  },
-  {
-    title: 'Explore lessons',
-    description: 'Discover something new',
-    icon: Compass,
-    color: 'purple',
-  },
-  {
-    title: 'Practice skills',
-    description: 'Sharpen your knowledge',
-    icon: Brain,
-    color: 'green',
-  },
-  {
-    title: 'View achievements',
-    description: 'Celebrate your progress',
-    icon: Trophy,
-    color: 'orange',
-  },
-]
+export default function QuickActions({ onTakeQuiz, onExplore, onDownloadCert }) {
+  const handleAction = (title) => {
+    if (title === 'Take a quiz' && onTakeQuiz) {
+      onTakeQuiz()
+    } else if (title === 'Explore lessons' && onExplore) {
+      onExplore()
+    } else if (title === 'Claim Certificate' && onDownloadCert) {
+      onDownloadCert()
+    } else if (title === 'Ask AI Tutor') {
+      const fab = document.querySelector('.lc-ai-fab')
+      if (fab) fab.click()
+    }
+  }
 
-export default function QuickActions() {
+  const actions = [
+    {
+      title: 'Take a quiz',
+      description: 'Test your understanding',
+      icon: ClipboardCheck,
+      color: 'blue',
+    },
+    {
+      title: 'Explore lessons',
+      description: 'Jump to course catalogue',
+      icon: Compass,
+      color: 'purple',
+    },
+    {
+      title: 'Ask AI Tutor',
+      description: 'Get step-by-step assistance',
+      icon: Bot,
+      color: 'green',
+    },
+    {
+      title: 'Claim Certificate',
+      description: 'Download verified credentials',
+      icon: Award,
+      color: 'orange',
+    },
+  ]
+
   return (
     <section className="lc-section">
       <div className="lc-section-heading">
         <div>
           <span className="lc-eyebrow">MAKE YOUR NEXT MOVE</span>
           <h2>Quick Actions</h2>
-          <p>Shortcuts to your learning activities.</p>
+          <p>Instant shortcuts to your learning activities.</p>
         </div>
       </div>
 
       <div className="lc-quick-grid">
         {actions.map(({ title, description, icon: Icon, color }) => (
           <button
+            type="button"
             className="lc-quick-card"
             key={title}
-            onClick={() => window.alert(`${title}: connect this action to your app feature.`)}
+            onClick={() => handleAction(title)}
           >
             <span className={`lc-quick-icon lc-icon-${color}`}>
               <Icon size={21} />

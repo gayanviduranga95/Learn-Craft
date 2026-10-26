@@ -2,28 +2,39 @@ import {
   Sparkles,
   LayoutDashboard,
   BookOpen,
-  Compass,
-  Trophy,
-  ChartNoAxesColumnIncreasing,
-  Settings,
-  CircleHelp,
   LogOut,
   Zap,
-  ChevronRight,
+  GraduationCap,
 } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
-const navigation = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'My Courses', icon: BookOpen, path: '/courses' },
-  { label: 'Explore', icon: Compass, path: '/explore' },
-  { label: 'Achievements', icon: Trophy, path: '/achievements' },
-  { label: 'My Progress', icon: ChartNoAxesColumnIncreasing, path: '/progress' },
-]
-
-export default function Sidebar() {
+export default function Sidebar({ totalLessonsDone = 0 }) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { logout, isInstructor } = useAuth()
+
+  const xpEarned = totalLessonsDone * 50
+  const level = Math.max(1, Math.floor(xpEarned / 200) + 1)
+  const nextLevelXp = level * 200
+
+  const navigation = [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    { label: 'My Courses', icon: BookOpen, path: '/dashboard' },
+  ]
+
+  if (isInstructor) {
+    navigation.push({
+      label: 'Instructor Studio',
+      icon: GraduationCap,
+      path: '/instructor',
+    })
+  }
+
+  const handleSignOut = async () => {
+    await logout()
+    navigate('/login')
+  }
 
   return (
     <aside className="lc-sidebar">
@@ -64,31 +75,23 @@ export default function Sidebar() {
         <div className="lc-level-top">
           <span className="lc-level-icon"><Zap size={19} /></span>
           <span>YOUR LEVEL</span>
-          <strong>05</strong>
+          <strong>0{level}</strong>
         </div>
-        <h3>Curious Explorer</h3>
+        <h3>{isInstructor ? 'Verified Educator' : 'Curious Explorer'}</h3>
         <div className="lc-xp-row">
-          <span>1,250 XP</span>
-          <span>1,500 XP</span>
+          <span>{xpEarned} XP</span>
+          <span>{nextLevelXp} XP</span>
         </div>
         <div className="lc-xp-track">
-          <span />
+          <span style={{ width: `${Math.min(100, Math.round((xpEarned / nextLevelXp) * 100))}%` }} />
         </div>
-        <button type="button" className="lc-level-link" onClick={() => navigate('/progress')}>
-          View progress <ChevronRight size={15} />
-        </button>
+        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '6px' }}>
+          {totalLessonsDone} lessons completed
+        </div>
       </section>
 
       <div className="lc-sidebar-bottom">
-        <button type="button" className="lc-nav-item" onClick={() => navigate('/settings')}>
-          <Settings size={19} />
-          <span>Settings</span>
-        </button>
-        <button type="button" className="lc-nav-item" onClick={() => navigate('/help')}>
-          <CircleHelp size={19} />
-          <span>Help & Support</span>
-        </button>
-        <button type="button" className="lc-nav-item lc-logout" onClick={() => navigate('/login')}>
+        <button type="button" className="lc-nav-item lc-logout" onClick={handleSignOut}>
           <LogOut size={19} />
           <span>Sign Out</span>
         </button>
