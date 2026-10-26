@@ -80,7 +80,7 @@ export function issueAuthCookie(res, user) {
   res.cookie("learncraft_token", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "lax",
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
     maxAge: 15 * 60 * 1000,
   });
@@ -471,7 +471,7 @@ export async function logout(req, res) {
   res.clearCookie("learncraft_token", {
     httpOnly: true,
     secure: secureCookie,
-    sameSite: "lax",
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
   });
 
