@@ -39,6 +39,7 @@ export default function Shop() {
   const [successMessage, setSuccessMessage] = useState('')
   const [rewardNotification, setRewardNotification] = useState(null)
   const [gamification, setGamification] = useState(null)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   const loadShop = async () => {
     try {
@@ -131,6 +132,8 @@ export default function Shop() {
       <Sidebar
         gamificationData={gamification}
         totalLessonsDone={gamification?.stats?.lessonsCompleted || 0}
+        isOpen={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
       />
 
       <main className="dashboard-main">
@@ -138,6 +141,8 @@ export default function Shop() {
           coins={coins}
           streak={gamification?.streak?.current || 0}
           equippedFrame={equippedFrame}
+          onToggleMobileNav={() => setMobileNavOpen((v) => !v)}
+          isMobileNavOpen={mobileNavOpen}
         />
 
         <div className="dashboard-content shop-content">

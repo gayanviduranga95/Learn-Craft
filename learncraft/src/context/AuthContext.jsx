@@ -79,6 +79,14 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUserProfile = async (profileData) => {
+    const res = await authApi.updateProfile(profileData);
+    if (res?.data?.user) {
+      setUser((prev) => ({ ...prev, ...res.data.user }));
+    }
+    return res;
+  };
+
   const value = {
     user,
     loading,
@@ -88,6 +96,7 @@ export function AuthProvider({ children }) {
     register,
     logout,
     refreshUser,
+    updateUserProfile,
     isAuthenticated: Boolean(user),
     isInstructor: user?.role === "instructor" || user?.role === "admin",
   };

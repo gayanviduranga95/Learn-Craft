@@ -15,10 +15,12 @@ import {
   LogOut,
   Video as VideoIcon,
   Eye,
+  Menu,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { courseApi, lessonApi, quizApi } from "../services/api";
 import MarkdownViewer from "../components/common/MarkdownViewer";
+import ThemeToggle from "../components/common/ThemeToggle";
 import "./InstructorDashboard.css";
 
 export default function InstructorDashboard() {
@@ -29,6 +31,7 @@ export default function InstructorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Modals state
   const [showCourseModal, setShowCourseModal] = useState(false);
@@ -274,6 +277,18 @@ export default function InstructorDashboard() {
     }
   }
 
+  async function handleDeleteQuiz(quizId) {
+    if (!window.confirm("Are you sure you want to delete this quiz? This cannot be undone.")) return;
+    try {
+      await quizApi.deleteQuiz(quizId);
+      setSuccessMsg("Quiz deleted successfully.");
+      const data = await quizApi.getCourseQuizzes(selectedCourseForQuizzes.id);
+      setCourseQuizzes(data);
+    } catch (err) {
+      setError(err.message || "Failed to delete quiz.");
+    }
+  }
+
   // Stats management
   async function openStatsModal(course) {
     setSelectedCourseForStats(course);
@@ -301,11 +316,50 @@ export default function InstructorDashboard() {
           <span className="lc-inst-brand-badge">Instructor Studio</span>
         </Link>
 
-        <div className="lc-inst-nav-actions">
+        {/* Mobile menu toggle & ThemeToggle */}
+        <div className="lc-inst-header-mobile-controls">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="lc-inst-mobile-toggle"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((v) => !v)}
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+
+        {/* Backdrop for mobile nav */}
+        {mobileMenuOpen && (
+          <div
+            className="lc-inst-nav-backdrop"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        <div className={`lc-inst-nav-actions ${mobileMenuOpen ? "is-open" : ""}`}>
+          <div className="lc-inst-desktop-theme">
+            <ThemeToggle />
+          </div>
           <button
             type="button"
             className="lc-inst-btn lc-inst-btn-secondary"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => {
+              setMobileMenuOpen(false);
+              navigate("/profile");
+            }}
+          >
+            My Profile
+          </button>
+          <button
+            type="button"
+            className="lc-inst-btn lc-inst-btn-secondary"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              navigate("/dashboard");
+            }}
           >
             Switch to Student View
           </button>
@@ -313,6 +367,7 @@ export default function InstructorDashboard() {
             type="button"
             className="lc-inst-btn lc-inst-btn-danger"
             onClick={async () => {
+              setMobileMenuOpen(false);
               await logout();
               navigate("/login");
             }}
@@ -610,7 +665,7 @@ export default function InstructorDashboard() {
                       Cancel Edit
                     </button>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                  <div className="lc-inst-form-row" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: "12px" }}>
                     <input
                       type="text"
                       className="lc-inst-input"
@@ -702,7 +757,7 @@ export default function InstructorDashboard() {
               ) : (
                 <form onSubmit={handleAddLesson} style={{ background: "rgba(255,255,255,0.03)", padding: "18px", borderRadius: "12px", marginBottom: "24px", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <h4 style={{ margin: "0 0 14px", color: "#818cf8" }}>+ Add New Lesson</h4>
-                  <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                  <div className="lc-inst-form-row" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: "12px" }}>
                     <input
                       type="text"
                       className="lc-inst-input"
@@ -795,7 +850,7 @@ export default function InstructorDashboard() {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {courseLessons.map((l, index) => (
-                    <div key={l.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: "10px" }}>
+                    <div key={l.id} className="lc-inst-lesson-item" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: "10px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         <strong>{index + 1}. {l.title}</strong>
                         <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{l.durationMinutes} min</span>
@@ -945,7 +1000,18 @@ export default function InstructorDashboard() {
                           {q.totalQuestions} questions · Passing threshold: {q.passingScorePercentage}%
                         </div>
                       </div>
-                      <CheckCircle2 size={18} color="#22c55e" />
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <CheckCircle2 size={18} color="#22c55e" />
+                        <button
+                          type="button"
+                          className="lc-inst-btn lc-inst-btn-danger"
+                          style={{ padding: "6px 10px" }}
+                          onClick={() => handleDeleteQuiz(q.id)}
+                          title="Delete Quiz"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -985,32 +1051,34 @@ export default function InstructorDashboard() {
                   {courseStats.stats.students?.length === 0 ? (
                     <p style={{ color: "#94a3b8" }}>No students have started this course yet.</p>
                   ) : (
-                    <table className="lc-inst-table">
-                      <thead>
-                        <tr>
-                          <th>Student Name</th>
-                          <th>Email</th>
-                          <th>Progress</th>
-                          <th>Last Active</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {courseStats.stats.students.map((st, sIdx) => (
-                          <tr key={sIdx}>
-                            <td><strong>{st.name}</strong></td>
-                            <td style={{ color: "#94a3b8" }}>{st.email}</td>
-                            <td>
-                              <span style={{ color: st.progressPercentage >= 100 ? "#22c55e" : "#60a5fa", fontWeight: 600 }}>
-                                {st.completedLessons} / {st.totalLessons} ({st.progressPercentage}%)
-                              </span>
-                            </td>
-                            <td style={{ color: "#64748b", fontSize: "0.8rem" }}>
-                              {st.lastAccessedAt ? new Date(st.lastAccessedAt).toLocaleDateString() : "Recently"}
-                            </td>
+                    <div className="lc-inst-table-wrap">
+                      <table className="lc-inst-table">
+                        <thead>
+                          <tr>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Progress</th>
+                            <th>Last Active</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {courseStats.stats.students.map((st, sIdx) => (
+                            <tr key={sIdx}>
+                              <td><strong>{st.name}</strong></td>
+                              <td style={{ color: "#94a3b8" }}>{st.email}</td>
+                              <td>
+                                <span style={{ color: st.progressPercentage >= 100 ? "#22c55e" : "#60a5fa", fontWeight: 600 }}>
+                                  {st.completedLessons} / {st.totalLessons} ({st.progressPercentage}%)
+                                </span>
+                              </td>
+                              <td style={{ color: "#64748b", fontSize: "0.8rem" }}>
+                                {st.lastAccessedAt ? new Date(st.lastAccessedAt).toLocaleDateString() : "Recently"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </>
               ) : (

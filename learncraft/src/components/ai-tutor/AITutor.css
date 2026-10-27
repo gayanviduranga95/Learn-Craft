@@ -366,25 +366,27 @@
 @media (max-width: 480px) {
   .lc-ai-panel {
     border-radius: 17px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
   }
 
   .lc-ai-header {
     gap: 7px;
-    padding: 9px;
+    padding: 10px;
+    min-height: 56px;
   }
 
   .lc-ai-header-copy strong {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .lc-ai-header-copy small {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .lc-ai-header-button {
-    flex-basis: 26px;
-    width: 26px;
-    height: 26px;
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
   }
 
   .lc-ai-welcome {
@@ -395,6 +397,21 @@
   .lc-ai-suggestions {
     padding-right: 11px;
     padding-left: 11px;
+  }
+
+  .lc-ai-composer {
+    padding: 8px 10px;
+  }
+
+  .lc-ai-composer input {
+    font-size: 14px;
+    min-height: 40px;
+  }
+
+  .lc-ai-composer button {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -433,3 +450,65 @@
   background: rgba(239, 68, 68, 0.1) !important;
   color: #fca5a5 !important;
 }
+
+/* ==========================================
+   Dark Mode Overrides for AI Tutor
+   ========================================== */
+[data-theme="dark"] .lc-ai-panel {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="dark"] .lc-ai-welcome {
+  background: rgba(30, 41, 59, 0.8);
+  border-bottom: 1px solid #334155;
+}
+
+[data-theme="dark"] .lc-ai-welcome p {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .lc-ai-message-assistant {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .lc-ai-suggestion-chip {
+  background: #0f172a;
+  border-color: #334155;
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .lc-ai-suggestion-chip:hover {
+  background: #334155;
+  border-color: #3b82f6;
+  color: #bfdbfe;
+}
+
+[data-theme="dark"] .lc-ai-composer {
+  background: #1e293b;
+  border-top-color: #334155;
+}
+
+[data-theme="dark"] .lc-ai-composer input {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .lc-ai-composer input::placeholder {
+  color: #64748b;
+}
+
+[data-theme="dark"] .lc-ai-composer input:focus {
+  border-color: #3b82f6;
+  background: #0f172a;
+}
+
+[data-theme="dark"] .lc-ai-disclaimer {
+  color: #64748b;
+}
+

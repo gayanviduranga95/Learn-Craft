@@ -14,6 +14,7 @@ import {
   Award,
   Download,
   ClipboardList,
+  ChevronDown,
 } from 'lucide-react'
 import { lessonApi, certificateApi } from '../../services/api'
 import QuizModal from '../quiz/QuizModal'
@@ -35,6 +36,7 @@ export default function CourseLessons({ course: propCourse, onBack, onProgressSa
   const [showQuizModal, setShowQuizModal] = useState(false)
   const [downloadingCert, setDownloadingCert] = useState(false)
   const [certSuccess, setCertSuccess] = useState('')
+  const [mobileLessonsOpen, setMobileLessonsOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -208,7 +210,7 @@ export default function CourseLessons({ course: propCourse, onBack, onProgressSa
 
   return (
     <section className="lc-course-lessons">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="lc-lessons-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
         <button
           className="lc-lessons-back"
           type="button"
@@ -221,7 +223,7 @@ export default function CourseLessons({ course: propCourse, onBack, onProgressSa
         <button
           type="button"
           className="lc-inst-btn lc-inst-btn-secondary"
-          style={{ padding: '8px 14px', borderRadius: '8px', cursor: 'pointer' }}
+          style={{ padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', minHeight: '40px' }}
           onClick={() => setShowQuizModal(true)}
         >
           <ClipboardList size={16} /> Take Course Quiz
@@ -297,8 +299,28 @@ export default function CourseLessons({ course: propCourse, onBack, onProgressSa
         </div>
       )}
 
+      {/* Mobile Syllabus Toggle Button */}
+      <button
+        type="button"
+        className="lc-mobile-syllabus-toggle"
+        aria-expanded={mobileLessonsOpen}
+        onClick={() => setMobileLessonsOpen((prev) => !prev)}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <BookOpen size={18} />
+          <strong>Course Syllabus ({completedCount}/{lessons.length} Completed)</strong>
+        </span>
+        <ChevronDown
+          size={18}
+          style={{
+            transform: mobileLessonsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s',
+          }}
+        />
+      </button>
+
       <div className="lc-lessons-layout">
-        <aside className="lc-lessons-list">
+        <aside className={`lc-lessons-list ${mobileLessonsOpen ? 'is-open' : ''}`}>
           <h3>
             <BookOpen size={18} />
             Course lessons
@@ -315,7 +337,10 @@ export default function CourseLessons({ course: propCourse, onBack, onProgressSa
               className={`lc-lesson-item ${
                 selectedLessonId === lesson.id ? 'is-active' : ''
               } ${lesson.completed ? 'is-completed' : ''}`}
-              onClick={() => setSelectedLessonId(lesson.id)}
+              onClick={() => {
+                setSelectedLessonId(lesson.id)
+                setMobileLessonsOpen(false)
+              }}
               aria-current={
                 selectedLessonId === lesson.id ? 'step' : undefined
               }

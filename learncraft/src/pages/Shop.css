@@ -313,6 +313,13 @@
   .shop-banner {
     flex-direction: column;
     align-items: flex-start;
+    padding: 20px 16px;
+    gap: 16px;
+    border-radius: 16px;
+  }
+
+  .shop-banner h1 {
+    font-size: 1.5rem;
   }
 
   .shop-balance-pill {
@@ -320,3 +327,134 @@
     text-align: left;
   }
 }
+
+@media (max-width: 600px) {
+  .shop-content {
+    padding: 16px 12px 30px;
+  }
+
+  .shop-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .shop-filters {
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .shop-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shop-filter-btn {
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 8px 14px;
+  }
+
+  .shop-btn,
+  .equip-btn {
+    min-height: 44px;
+  }
+}
+
+/* ========================================================
+   DARK MODE OVERRIDES FOR REWARD SHOP
+   ======================================================== */
+[data-theme="dark"] .shop-page,
+.dark .shop-page {
+  background: #070d1e !important;
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .shop-banner,
+.dark .shop-banner {
+  background:
+    radial-gradient(ellipse at 83% 50%, rgba(0, 195, 239, 0.12) 0, transparent 40%),
+    linear-gradient(115deg, #0b1329 0%, #0f1b38 52%, #091124 100%) !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .shop-banner h1,
+.dark .shop-banner h1 {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .shop-banner p,
+.dark .shop-banner p {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .shop-balance-pill,
+.dark .shop-balance-pill {
+  background: #0c1836 !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .shop-tabs,
+.dark .shop-tabs {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+}
+
+[data-theme="dark"] .shop-tab,
+.dark .shop-tab {
+  color: #8b9bb4 !important;
+}
+
+[data-theme="dark"] .shop-tab.active,
+.dark .shop-tab.active {
+  background: #1e293b !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .shop-card,
+.dark .shop-card {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="dark"] .shop-card h3,
+.dark .shop-card h3 {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .shop-card p,
+.dark .shop-card p {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .shop-preview-box,
+.dark .shop-preview-box {
+  background: #070d1e !important;
+  border-color: #1a2c52 !important;
+}
+
+[data-theme="dark"] .equip-btn,
+.dark .equip-btn {
+  background: #070d1e !important;
+  border-color: #1a2c52 !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .equip-btn:hover,
+.dark .equip-btn:hover {
+  background: #112247 !important;
+}
+
+[data-theme="dark"] .equip-btn.is-active,
+.dark .equip-btn.is-active {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: #22c55e !important;
+  color: #4ade80 !important;
+}
+

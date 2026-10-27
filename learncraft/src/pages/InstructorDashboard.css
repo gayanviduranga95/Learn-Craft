@@ -138,7 +138,7 @@
 
 .lc-inst-courses-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 22px;
 }
 
@@ -361,3 +361,261 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 0.9rem;
 }
+
+/* Light Mode Overrides for Instructor Dashboard */
+[data-theme="light"] .lc-inst-page {
+  background: #f8faff;
+  color: #1e293b;
+}
+
+[data-theme="light"] .lc-inst-header {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .lc-inst-hero {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  border-color: #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .lc-inst-hero h1 {
+  color: #0f172a;
+}
+
+[data-theme="light"] .lc-inst-hero p {
+  color: #64748b;
+}
+
+[data-theme="light"] .lc-inst-stat-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .lc-inst-stat-info strong {
+  color: #0f172a;
+}
+
+[data-theme="light"] .lc-inst-course-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .lc-inst-card-title {
+  color: #0f172a;
+}
+
+[data-theme="light"] .lc-inst-card-metrics {
+  background: #f8faff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .lc-inst-card-metrics strong {
+  color: #0f172a;
+}
+
+[data-theme="light"] .lc-inst-modal {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .lc-inst-modal-header {
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .lc-inst-input,
+[data-theme="light"] .lc-inst-select,
+[data-theme="light"] .lc-inst-textarea {
+  background: #f8faff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .lc-inst-form-group label {
+  color: #334155;
+}
+
+[data-theme="light"] .lc-inst-table th {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+[data-theme="light"] .lc-inst-table td {
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+/* Base Responsive Controls */
+.lc-inst-header-mobile-controls {
+  display: none;
+}
+
+.lc-inst-desktop-theme {
+  display: flex;
+  align-items: center;
+}
+
+.lc-inst-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 12px;
+}
+
+.lc-inst-table-wrap .lc-inst-table {
+  margin-top: 0;
+  min-width: 540px;
+}
+
+/* Responsive Breakpoints for Instructor Dashboard */
+@media (max-width: 860px) {
+  .lc-inst-header {
+    padding: 12px 18px;
+  }
+
+  .lc-inst-header-mobile-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lc-inst-desktop-theme {
+    display: none;
+  }
+
+  .lc-inst-mobile-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f1f5f9;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .lc-inst-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 9, 20, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 198;
+  }
+
+  .lc-inst-nav-actions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #0f172a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 199;
+    display: none;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  }
+
+  .lc-inst-nav-actions.is-open {
+    display: flex;
+  }
+
+  .lc-inst-nav-actions .lc-inst-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .lc-inst-content {
+    padding: 24px 16px;
+  }
+
+  .lc-inst-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 22px 20px;
+  }
+
+  .lc-inst-hero .lc-inst-btn-primary {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .lc-inst-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+}
+
+@media (max-width: 600px) {
+  .lc-inst-content {
+    padding: 18px 12px;
+  }
+
+  .lc-inst-hero h1 {
+    font-size: 1.45rem;
+  }
+
+  .lc-inst-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .lc-inst-courses-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .lc-inst-course-card {
+    padding: 18px 16px;
+  }
+
+  .lc-inst-card-actions .lc-inst-btn {
+    min-height: 42px;
+  }
+
+  .lc-inst-form-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lc-inst-modal-header {
+    padding: 16px 18px;
+  }
+
+  .lc-inst-modal-body {
+    padding: 16px 14px;
+  }
+
+  .lc-inst-lesson-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .lc-inst-lesson-item > div:last-child {
+    align-self: flex-end;
+  }
+}
+
+[data-theme="light"] .lc-inst-mobile-toggle {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .lc-inst-nav-actions {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+

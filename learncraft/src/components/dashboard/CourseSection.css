@@ -632,6 +632,11 @@
   .lc-course-description {
     min-height: 0;
   }
+
+  .lc-course-action {
+    min-height: 44px;
+    font-size: 12px;
+  }
 }
 
 @media (min-width: 681px) and (max-width: 900px) {
@@ -649,3 +654,119 @@
     transition: none;
   }
 }
+
+/* Dark Mode Overrides for CourseSection */
+[data-theme="dark"] .lc-courses {
+  color: #f0f6fc;
+}
+
+[data-theme="dark"] .lc-courses-heading h2 {
+  color: #f0f6fc;
+}
+
+[data-theme="dark"] .lc-courses-heading p {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .lc-courses-tab {
+  color: #8b9bb4;
+}
+
+[data-theme="dark"] .lc-courses-tab:hover {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+[data-theme="dark"] .lc-courses-tab.is-active {
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
+
+[data-theme="dark"] .lc-courses-tab-count {
+  background: #112247;
+  color: #8b9bb4;
+}
+
+[data-theme="dark"] .lc-courses-tab.is-active .lc-courses-tab-count {
+  background: #087bff;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .lc-course-card {
+  background: #0c1836;
+  border-color: #1a2c52;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .lc-course-body {
+  background: #0c1836;
+}
+
+[data-theme="dark"] .lc-course-title {
+  color: #f0f6fc;
+}
+
+[data-theme="dark"] .lc-course-subtitle {
+  color: #8b9bb4;
+}
+
+[data-theme="dark"] .lc-course-description {
+  color: #7188a5;
+}
+
+[data-theme="dark"] .lc-course-progress-track {
+  background: #112247;
+}
+
+[data-theme="dark"] .lc-course-lesson-count {
+  color: #8b9bb4;
+}
+
+[data-theme="dark"] .lc-course-action {
+  background: #070d1e;
+  border-color: #1a2c52;
+  color: #38bdf8;
+}
+
+[data-theme="dark"] .lc-course-action:hover {
+  background: #112247;
+  border-color: #38bdf8;
+}
+
+[data-theme="dark"] .lc-course-meta {
+  color: #8b9bb4;
+}
+
+.lc-courses-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.lc-courses-search-bar input {
+  background: transparent;
+  border: none;
+  color: inherit;
+  outline: none;
+  font-size: 0.85rem;
+  width: 140px;
+}
+
+[data-theme="dark"] .lc-courses-search-bar,
+.dark .lc-courses-search-bar {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .lc-courses-search-bar input,
+.dark .lc-courses-search-bar input {
+  color: #f0f6fc !important;
+}
+
+

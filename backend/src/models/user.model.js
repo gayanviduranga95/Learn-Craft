@@ -78,6 +78,29 @@ const userSchema = new mongoose.Schema(
       longest: { type: Number, default: 0, min: 0 },
       lastActivityDate: { type: String, default: null },
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationTokenHash: {
+      type: String,
+      select: false,
+    },
+    verificationTokenExpires: {
+      type: Date,
+    },
+    resetPasswordTokenHash: {
+      type: String,
+      select: false,
+    },
+    resetPasswordTokenExpires: {
+      type: Date,
+    },
+    themePreference: {
+      type: String,
+      enum: ["system", "light", "dark"],
+      default: "system",
+    },
   },
   {
     timestamps: true,
