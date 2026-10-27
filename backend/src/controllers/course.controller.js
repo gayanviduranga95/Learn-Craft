@@ -381,7 +381,7 @@ export async function updateCourseProgress(req, res, next) {
         },
       },
       {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         runValidators: true,
         setDefaultsOnInsert: true,
@@ -435,7 +435,7 @@ export async function enrolInCourse(req, res, next) {
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
         setDefaultsOnInsert: true,
       }
     );

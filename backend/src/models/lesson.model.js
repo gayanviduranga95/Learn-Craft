@@ -32,6 +32,11 @@ const lessonSchema = new mongoose.Schema(
       default: 10,
       min: 1,
     },
+    videoUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     isPublished: {
       type: Boolean,
       default: true,

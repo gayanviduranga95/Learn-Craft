@@ -56,6 +56,7 @@ export async function getCourseLessons(req, res, next) {
         description: lesson.description,
         order: lesson.order,
         durationMinutes: lesson.durationMinutes,
+        videoUrl: lesson.videoUrl || "",
         content: lesson.content,
         isPublished: lesson.isPublished,
         completed: completedIds.has(String(lesson._id)),
@@ -181,7 +182,7 @@ export async function completeLesson(req, res, next) {
 export async function createLesson(req, res, next) {
   try {
     const { courseId } = req.params;
-    const { title, description, content, durationMinutes, order, isPublished } = req.body ?? {};
+    const { title, description, content, durationMinutes, order, isPublished, videoUrl } = req.body ?? {};
 
     if (!mongoose.isValidObjectId(courseId)) {
       return res.status(400).json({ message: "Invalid course ID." });
@@ -218,6 +219,7 @@ export async function createLesson(req, res, next) {
       title: title.trim(),
       description: (description || "").trim(),
       content: (content || "").trim(),
+      videoUrl: (videoUrl || "").trim(),
       durationMinutes: Math.max(1, Number(durationMinutes) || 10),
       order: lessonOrder,
       isPublished: isPublished !== undefined ? Boolean(isPublished) : true,
@@ -243,7 +245,7 @@ export async function createLesson(req, res, next) {
 export async function updateLesson(req, res, next) {
   try {
     const { lessonId } = req.params;
-    const { title, description, content, durationMinutes, order, isPublished } = req.body ?? {};
+    const { title, description, content, durationMinutes, order, isPublished, videoUrl } = req.body ?? {};
 
     if (!mongoose.isValidObjectId(lessonId)) {
       return res.status(400).json({ message: "Invalid lesson ID." });
@@ -269,6 +271,7 @@ export async function updateLesson(req, res, next) {
     if (title !== undefined) lesson.title = title.trim();
     if (description !== undefined) lesson.description = description.trim();
     if (content !== undefined) lesson.content = content.trim();
+    if (videoUrl !== undefined) lesson.videoUrl = videoUrl.trim();
     if (durationMinutes !== undefined) lesson.durationMinutes = Math.max(1, Number(durationMinutes) || 10);
     if (order !== undefined) lesson.order = Number(order);
     if (isPublished !== undefined) lesson.isPublished = Boolean(isPublished);
