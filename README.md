@@ -168,7 +168,7 @@ LearnCraft delivers a complete modern learning ecosystem engineered with an acad
 <summary><b>🎓 1. Student Experience & AI Tutor</b></summary>
 <br />
 
-- **Interactive Curriculum Flow:** Step through sequential lessons with rich reading modules, previous/next controls, and instant completion toggles.
+- **Interactive Curriculum Flow & Video Lectures:** Step through sequential lessons with responsive 16:9 video lectures (YouTube, Vimeo, MP4), theatre mode, and rich Markdown reading modules with syntax-highlighted code blocks, 1-click copy buttons, GitHub-style callouts (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`), tables, and task checklists.
 - **Conversational AI Tutor:** Floating AI companion powered by **Google Gemini** that understands the active lesson and helps learners break down complex concepts using Socratic dialogue.
 - **Anti-Cheat Quizzes:** Take multi-choice assessments where answer keys are never delivered to the client DOM, preventing inspect-element cheating.
 - **Personalized Progress Metrics:** Real-time tracking of active courses, completed lessons, overall completion percentage, level progression bar, and daily study streaks.
@@ -180,7 +180,7 @@ LearnCraft delivers a complete modern learning ecosystem engineered with an acad
 <br />
 
 - **Course Authoring:** Create, edit, and publish rich courses across Computer Science, Mathematics, Science, and Languages.
-- **Curriculum Builder:** Add structured lessons with customizable duration estimates and markdown-formatted content.
+- **Curriculum Builder & Live Markdown Studio:** Add, edit, and manage structured lessons with customizable duration estimates, optional video lecture URLs, and an interactive "Write / Live Preview" editor for markdown and code formatting.
 - **Assessment Designer:** Create custom multi-choice quizzes, define custom passing score thresholds (e.g. 70%), and customize options.
 - **Real-Time Analytics:** Inspect student enrollment metrics, active completions, and individual quiz performance per course.
 - **Strict Ownership Isolation:** Express RBAC middleware guarantees that instructors cannot inspect, alter, or delete content belonging to other instructors (`403 Forbidden`).

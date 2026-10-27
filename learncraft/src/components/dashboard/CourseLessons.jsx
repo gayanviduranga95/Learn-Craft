@@ -18,6 +18,8 @@ import {
 import { lessonApi, certificateApi } from '../../services/api'
 import QuizModal from '../quiz/QuizModal'
 import AITutorWidget from '../ai-tutor/AITutorWidget'
+import VideoPlayer from '../common/VideoPlayer'
+import MarkdownViewer from '../common/MarkdownViewer'
 
 export default function CourseLessons({ course: propCourse, onBack, onProgressSaved } = {}) {
   const params = useParams()
@@ -356,9 +358,20 @@ export default function CourseLessons({ course: propCourse, onBack, onProgressSa
               <h3>{selectedLesson.title}</h3>
               <p>{selectedLesson.description}</p>
 
+              {selectedLesson.videoUrl && (
+                <VideoPlayer
+                  url={selectedLesson.videoUrl}
+                  title={selectedLesson.title}
+                />
+              )}
+
               <div className="lc-lesson-reading">
-                {selectedLesson.content ||
-                  'Welcome to this lesson! Study the core principles and when ready, mark this lesson as completed to track your progress.'}
+                <MarkdownViewer
+                  content={
+                    selectedLesson.content ||
+                    'Welcome to this lesson! Study the core principles and when ready, mark this lesson as completed to track your progress.'
+                  }
+                />
               </div>
 
               {!selectedLesson.completed && (

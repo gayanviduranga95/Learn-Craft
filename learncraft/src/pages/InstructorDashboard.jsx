@@ -13,9 +13,12 @@ import {
   X,
   CheckCircle2,
   LogOut,
+  Video as VideoIcon,
+  Eye,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { courseApi, lessonApi, quizApi } from "../services/api";
+import MarkdownViewer from "../components/common/MarkdownViewer";
 import "./InstructorDashboard.css";
 
 export default function InstructorDashboard() {
@@ -51,7 +54,18 @@ export default function InstructorDashboard() {
     description: "",
     content: "",
     durationMinutes: 10,
+    videoUrl: "",
   });
+  const [lessonPreviewMode, setLessonPreviewMode] = useState(false);
+  const [editingLesson, setEditingLesson] = useState(null);
+  const [editLessonForm, setEditLessonForm] = useState({
+    title: "",
+    description: "",
+    content: "",
+    durationMinutes: 10,
+    videoUrl: "",
+  });
+  const [editLessonPreviewMode, setEditLessonPreviewMode] = useState(false);
 
   const [selectedCourseForQuizzes, setSelectedCourseForQuizzes] = useState(null);
   const [courseQuizzes, setCourseQuizzes] = useState([]);
@@ -158,13 +172,53 @@ export default function InstructorDashboard() {
     try {
       await lessonApi.createLesson(selectedCourseForLessons.id, lessonForm);
       setSuccessMsg("Lesson added successfully!");
-      setLessonForm({ title: "", description: "", content: "", durationMinutes: 10 });
+      setLessonForm({
+        title: "",
+        description: "",
+        content: "",
+        durationMinutes: 10,
+        videoUrl: "",
+      });
+      setLessonPreviewMode(false);
       // Refresh lessons
       const data = await lessonApi.getCourseLessons(selectedCourseForLessons.id);
       setCourseLessons(data.lessons || []);
       loadCourses();
     } catch (err) {
       setError(err.message || "Failed to add lesson.");
+    }
+  }
+
+  function startEditLesson(lesson) {
+    setEditingLesson(lesson);
+    setEditLessonForm({
+      title: lesson.title || "",
+      description: lesson.description || "",
+      content: lesson.content || "",
+      durationMinutes: lesson.durationMinutes || 10,
+      videoUrl: lesson.videoUrl || "",
+    });
+    setEditLessonPreviewMode(false);
+  }
+
+  function cancelEditLesson() {
+    setEditingLesson(null);
+    setEditLessonPreviewMode(false);
+  }
+
+  async function handleUpdateLessonSubmit(e) {
+    e.preventDefault();
+    if (!editingLesson || !selectedCourseForLessons) return;
+    try {
+      await lessonApi.updateLesson(editingLesson.id, editLessonForm);
+      setSuccessMsg("Lesson updated successfully!");
+      setEditingLesson(null);
+      // Refresh lessons
+      const data = await lessonApi.getCourseLessons(selectedCourseForLessons.id);
+      setCourseLessons(data.lessons || []);
+      loadCourses();
+    } catch (err) {
+      setError(err.message || "Failed to update lesson.");
     }
   }
 
@@ -545,49 +599,194 @@ export default function InstructorDashboard() {
               <button className="lc-inst-btn" onClick={() => setSelectedCourseForLessons(null)}><X size={18} /></button>
             </div>
             <div className="lc-inst-modal-body">
-              {/* Add lesson form */}
-              <form onSubmit={handleAddLesson} style={{ background: "rgba(255,255,255,0.03)", padding: "18px", borderRadius: "12px", marginBottom: "24px", border: "1px solid rgba(255,255,255,0.08)" }}>
-                <h4 style={{ margin: "0 0 14px", color: "#818cf8" }}>+ Add New Lesson</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: "12px" }}>
-                  <input
-                    type="text"
-                    className="lc-inst-input"
-                    required
-                    placeholder="Lesson Title"
-                    value={lessonForm.title}
-                    onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
-                  />
-                  <input
-                    type="number"
-                    className="lc-inst-input"
-                    min="1"
-                    placeholder="Duration (mins)"
-                    value={lessonForm.durationMinutes}
-                    onChange={(e) => setLessonForm({ ...lessonForm, durationMinutes: e.target.value })}
-                  />
-                </div>
-                <div style={{ marginBottom: "12px" }}>
-                  <input
-                    type="text"
-                    className="lc-inst-input"
-                    placeholder="Short summary/description"
-                    value={lessonForm.description}
-                    onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })}
-                  />
-                </div>
-                <div style={{ marginBottom: "12px" }}>
-                  <textarea
-                    className="lc-inst-textarea"
-                    placeholder="Full lesson instructional text and study content..."
-                    rows={3}
-                    value={lessonForm.content}
-                    onChange={(e) => setLessonForm({ ...lessonForm, content: e.target.value })}
-                  />
-                </div>
-                <button type="submit" className="lc-inst-btn lc-inst-btn-primary">
-                  <Plus size={16} /> Save Lesson
-                </button>
-              </form>
+              {/* Edit Lesson Form OR Add Lesson Form */}
+              {editingLesson ? (
+                <form onSubmit={handleUpdateLessonSubmit} style={{ background: "rgba(99,102,241,0.06)", padding: "18px", borderRadius: "12px", marginBottom: "24px", border: "1px solid rgba(99,102,241,0.3)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                    <h4 style={{ margin: 0, color: "#818cf8", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Edit size={16} /> Edit Lesson: {editingLesson.title}
+                    </h4>
+                    <button type="button" className="lc-inst-btn lc-inst-btn-secondary" style={{ padding: "4px 8px", fontSize: "0.75rem" }} onClick={cancelEditLesson}>
+                      Cancel Edit
+                    </button>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                    <input
+                      type="text"
+                      className="lc-inst-input"
+                      required
+                      placeholder="Lesson Title"
+                      value={editLessonForm.title}
+                      onChange={(e) => setEditLessonForm({ ...editLessonForm, title: e.target.value })}
+                    />
+                    <input
+                      type="number"
+                      className="lc-inst-input"
+                      min="1"
+                      placeholder="Duration (mins)"
+                      value={editLessonForm.durationMinutes}
+                      onChange={(e) => setEditLessonForm({ ...editLessonForm, durationMinutes: e.target.value })}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <input
+                      type="text"
+                      className="lc-inst-input"
+                      placeholder="Short summary/description"
+                      value={editLessonForm.description}
+                      onChange={(e) => setEditLessonForm({ ...editLessonForm, description: e.target.value })}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+                      <VideoIcon size={14} color="#818cf8" />
+                      <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#cbd5e1", margin: 0 }}>
+                        Video Lecture URL (YouTube, Vimeo, MP4 - optional)
+                      </label>
+                    </div>
+                    <input
+                      type="url"
+                      className="lc-inst-input"
+                      placeholder="e.g. https://www.youtube.com/watch?v=... or Vimeo link"
+                      value={editLessonForm.videoUrl}
+                      onChange={(e) => setEditLessonForm({ ...editLessonForm, videoUrl: e.target.value })}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "14px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                      <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#cbd5e1", margin: 0 }}>
+                        Lesson Content (Markdown & Code Supported)
+                      </label>
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        <button
+                          type="button"
+                          className={`lc-inst-btn ${!editLessonPreviewMode ? 'lc-inst-btn-primary' : 'lc-inst-btn-secondary'}`}
+                          style={{ padding: "3px 8px", fontSize: "0.75rem" }}
+                          onClick={() => setEditLessonPreviewMode(false)}
+                        >
+                          Write
+                        </button>
+                        <button
+                          type="button"
+                          className={`lc-inst-btn ${editLessonPreviewMode ? 'lc-inst-btn-primary' : 'lc-inst-btn-secondary'}`}
+                          style={{ padding: "3px 8px", fontSize: "0.75rem" }}
+                          onClick={() => setEditLessonPreviewMode(true)}
+                        >
+                          <Eye size={12} /> Preview
+                        </button>
+                      </div>
+                    </div>
+                    {!editLessonPreviewMode ? (
+                      <textarea
+                        className="lc-inst-textarea"
+                        placeholder="Write lesson instructional text in Markdown (Headers, code blocks, lists, alerts)..."
+                        rows={4}
+                        value={editLessonForm.content}
+                        onChange={(e) => setEditLessonForm({ ...editLessonForm, content: e.target.value })}
+                      />
+                    ) : (
+                      <div style={{ background: "#090d16", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "220px", overflowY: "auto" }}>
+                        <MarkdownViewer content={editLessonForm.content || "_No content entered._"} />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button type="submit" className="lc-inst-btn lc-inst-btn-primary">
+                      Save Lesson Changes
+                    </button>
+                    <button type="button" className="lc-inst-btn lc-inst-btn-secondary" onClick={cancelEditLesson}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <form onSubmit={handleAddLesson} style={{ background: "rgba(255,255,255,0.03)", padding: "18px", borderRadius: "12px", marginBottom: "24px", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <h4 style={{ margin: "0 0 14px", color: "#818cf8" }}>+ Add New Lesson</h4>
+                  <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                    <input
+                      type="text"
+                      className="lc-inst-input"
+                      required
+                      placeholder="Lesson Title"
+                      value={lessonForm.title}
+                      onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
+                    />
+                    <input
+                      type="number"
+                      className="lc-inst-input"
+                      min="1"
+                      placeholder="Duration (mins)"
+                      value={lessonForm.durationMinutes}
+                      onChange={(e) => setLessonForm({ ...lessonForm, durationMinutes: e.target.value })}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <input
+                      type="text"
+                      className="lc-inst-input"
+                      placeholder="Short summary/description"
+                      value={lessonForm.description}
+                      onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+                      <VideoIcon size={14} color="#818cf8" />
+                      <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#cbd5e1", margin: 0 }}>
+                        Video Lecture URL (YouTube, Vimeo, MP4 - optional)
+                      </label>
+                    </div>
+                    <input
+                      type="url"
+                      className="lc-inst-input"
+                      placeholder="e.g. https://www.youtube.com/watch?v=... or Vimeo link"
+                      value={lessonForm.videoUrl}
+                      onChange={(e) => setLessonForm({ ...lessonForm, videoUrl: e.target.value })}
+                    />
+                  </div>
+                  <div style={{ marginBottom: "14px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                      <label style={{ fontSize: "0.85rem", fontWeight: 600, color: "#cbd5e1", margin: 0 }}>
+                        Lesson Content (Markdown & Code Supported)
+                      </label>
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        <button
+                          type="button"
+                          className={`lc-inst-btn ${!lessonPreviewMode ? 'lc-inst-btn-primary' : 'lc-inst-btn-secondary'}`}
+                          style={{ padding: "3px 8px", fontSize: "0.75rem" }}
+                          onClick={() => setLessonPreviewMode(false)}
+                        >
+                          Write
+                        </button>
+                        <button
+                          type="button"
+                          className={`lc-inst-btn ${lessonPreviewMode ? 'lc-inst-btn-primary' : 'lc-inst-btn-secondary'}`}
+                          style={{ padding: "3px 8px", fontSize: "0.75rem" }}
+                          onClick={() => setLessonPreviewMode(true)}
+                        >
+                          <Eye size={12} /> Preview
+                        </button>
+                      </div>
+                    </div>
+                    {!lessonPreviewMode ? (
+                      <textarea
+                        className="lc-inst-textarea"
+                        placeholder="Full lesson instructional text and study content in Markdown (# Heading, ```js code```, > [!NOTE])..."
+                        rows={4}
+                        value={lessonForm.content}
+                        onChange={(e) => setLessonForm({ ...lessonForm, content: e.target.value })}
+                      />
+                    ) : (
+                      <div style={{ background: "#090d16", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "220px", overflowY: "auto" }}>
+                        <MarkdownViewer content={lessonForm.content || "_No content entered yet._"} />
+                      </div>
+                    )}
+                  </div>
+                  <button type="submit" className="lc-inst-btn lc-inst-btn-primary">
+                    <Plus size={16} /> Save Lesson
+                  </button>
+                </form>
+              )}
 
               {/* Existing lessons list */}
               <h4 style={{ margin: "0 0 12px" }}>Existing Lessons ({courseLessons.length})</h4>
@@ -597,17 +796,35 @@ export default function InstructorDashboard() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {courseLessons.map((l, index) => (
                     <div key={l.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: "10px" }}>
-                      <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         <strong>{index + 1}. {l.title}</strong>
-                        <span style={{ fontSize: "0.8rem", color: "#94a3b8", marginLeft: "10px" }}>{l.durationMinutes} min</span>
+                        <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{l.durationMinutes} min</span>
+                        {l.videoUrl && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "2px 8px", borderRadius: "999px", background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.35)", color: "#c7d2fe", fontSize: "0.7rem", fontWeight: 600 }}>
+                            <VideoIcon size={11} /> Video
+                          </span>
+                        )}
                       </div>
-                      <button
-                        type="button"
-                        className="lc-inst-btn lc-inst-btn-danger"
-                        onClick={() => handleDeleteLesson(l.id)}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <button
+                          type="button"
+                          className="lc-inst-btn lc-inst-btn-secondary"
+                          style={{ padding: "6px 10px" }}
+                          onClick={() => startEditLesson(l)}
+                          title="Edit Lesson"
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="lc-inst-btn lc-inst-btn-danger"
+                          style={{ padding: "6px 10px" }}
+                          onClick={() => handleDeleteLesson(l.id)}
+                          title="Delete Lesson"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
