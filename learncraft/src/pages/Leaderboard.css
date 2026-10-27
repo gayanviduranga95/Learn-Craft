@@ -480,3 +480,169 @@
     display: none;
   }
 }
+
+@media (max-width: 480px) {
+  .leaderboard-content {
+    padding: 16px 12px 30px;
+  }
+
+  .lb-banner {
+    padding: 20px 16px;
+    border-radius: 16px;
+    gap: 16px;
+  }
+
+  .lb-banner h1 {
+    font-size: 1.45rem;
+  }
+
+  .lb-period-switch {
+    width: 100%;
+    display: flex;
+  }
+
+  .lb-tab {
+    flex: 1;
+    min-height: 44px;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    justify-content: center;
+  }
+
+  .lb-table-header,
+  .lb-row {
+    padding: 12px 12px;
+  }
+
+  .user-name {
+    font-size: 0.85rem;
+  }
+
+  .col-xp {
+    font-size: 0.85rem;
+  }
+
+  .lb-my-position-card {
+    padding: 12px 14px;
+  }
+}
+
+/* ========================================================
+   DARK MODE OVERRIDES FOR LEADERBOARD
+   ======================================================== */
+[data-theme="dark"] .leaderboard-page,
+.dark .leaderboard-page {
+  background: #070d1e !important;
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .lb-banner,
+.dark .lb-banner {
+  background:
+    radial-gradient(ellipse at 83% 50%, rgba(0, 195, 239, 0.12) 0, transparent 40%),
+    linear-gradient(115deg, #0b1329 0%, #0f1b38 52%, #091124 100%) !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .lb-banner h1,
+.dark .lb-banner h1 {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .lb-banner p,
+.dark .lb-banner p {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .lb-period-switch,
+.dark .lb-period-switch {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+}
+
+[data-theme="dark"] .lb-tab,
+.dark .lb-tab {
+  color: #8b9bb4 !important;
+}
+
+[data-theme="dark"] .lb-tab.active,
+.dark .lb-tab.active {
+  background: #1e293b !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .podium-card,
+.dark .podium-card {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="dark"] .podium-name,
+.dark .podium-name {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .podium-level,
+.dark .podium-level {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .lb-table-card,
+.dark .lb-table-card {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="dark"] .lb-table-header,
+.dark .lb-table-header {
+  border-bottom-color: #1a2c52 !important;
+  color: #8b9bb4 !important;
+}
+
+[data-theme="dark"] .lb-row,
+.dark .lb-row {
+  border-bottom-color: #1a2c52 !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .lb-row:hover,
+.dark .lb-row:hover {
+  background: #112247 !important;
+}
+
+[data-theme="dark"] .lb-row.current-user,
+.dark .lb-row.current-user {
+  background: rgba(56, 189, 248, 0.1) !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+[data-theme="dark"] .col-user strong,
+.dark .col-user strong {
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .col-user small,
+.dark .col-user small {
+  color: #8b9bb4 !important;
+}
+
+[data-theme="dark"] .my-rank-banner,
+.dark .my-rank-banner {
+  background: #070d1e !important;
+  border-color: #1a2c52 !important;
+}
+
+[data-theme="dark"] .my-rank-info strong,
+.dark .my-rank-info strong {
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .my-rank-info small,
+.dark .my-rank-info small {
+  color: #8b9bb4 !important;
+}
+

@@ -19,6 +19,7 @@ import GameSession from "../src/models/game-session.model.js";
 import UserInventory from "../src/models/shop.model.js";
 import { awardReward } from "../src/services/reward.service.js";
 import bcrypt from "bcrypt";
+import crypto from "node:crypto";
 
 let server;
 let baseUrl;
@@ -839,9 +840,247 @@ async function runTests() {
     });
     assert(monthlyLeaderboardRes.status === 200, "Monthly leaderboard returns 200 OK");
 
+    // 14. Phase 4, 5, 6: Profile, Account Settings, Email Verification & Password Recovery Integration Tests
+    console.log("\n[14] Student Profile, Email Verification & Password Recovery");
+
+    // 14.1 GET /api/auth/profile
+    const authProfileRes = await request("/api/auth/profile", {
+      headers: { Cookie: studentCookie },
+    });
+    assert(authProfileRes.status === 200, "GET /api/auth/profile returns 200 OK");
+    assert(authProfileRes.data?.data?.user?.email === studentEmail, "Profile contains correct email");
+    assert(typeof authProfileRes.data?.data?.user?.themePreference === "string", "Profile includes themePreference");
+    assert(typeof authProfileRes.data?.data?.user?.isEmailVerified === "boolean", "Profile includes isEmailVerified");
+    assert(authProfileRes.data?.data?.user?.passwordHash === undefined, "Profile never returns passwordHash");
+
+    // 14.2 PUT /api/auth/profile - safe updates
+    const updateProfileRes = await request("/api/auth/profile", {
+      method: "PUT",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        name: "Test Student Updated",
+        avatar: "astronaut",
+        themePreference: "dark",
+      }),
+    });
+    assert(updateProfileRes.status === 200, "PUT /api/auth/profile updates profile successfully");
+    assert(updateProfileRes.data?.data?.user?.name === "Test Student Updated", "Name updated in profile");
+    assert(updateProfileRes.data?.data?.user?.avatar === "astronaut", "Avatar updated in profile");
+    assert(updateProfileRes.data?.data?.user?.themePreference === "dark", "Theme preference updated to dark");
+
+    // 14.3 PUT /api/auth/profile - Mass assignment protection
+    const attackProfileRes = await request("/api/auth/profile", {
+      method: "PUT",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        role: "admin",
+        xp: 999999,
+        coins: 888888,
+        isEmailVerified: true,
+      }),
+    });
+    assert(attackProfileRes.status === 200, "PUT /api/auth/profile ignores disallowed fields without crashing");
+    // Verify DB record was NOT mutated for protected fields
+    const studentDbCheck = await User.findById(studentUser._id);
+    assert(studentDbCheck.role === "student", "Role cannot be escalated via profile mass assignment");
+    assert(studentDbCheck.xp !== 999999, "XP cannot be escalated via profile mass assignment");
+
+    // 14.4 Password Change (PUT /api/auth/password)
+    // 14.4.1 Fails with wrong current password
+    const wrongPassRes = await request("/api/auth/password", {
+      method: "PUT",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        currentPassword: "WrongPassword999!",
+        newPassword: "BrandNewPassword456!",
+      }),
+    });
+    assert(wrongPassRes.status === 400, "PUT /api/auth/password rejects incorrect current password");
+
+    // 14.4.2 Fails with too short new password
+    const shortPassRes = await request("/api/auth/password", {
+      method: "PUT",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        currentPassword: "Password123!",
+        newPassword: "short",
+      }),
+    });
+    assert(shortPassRes.status === 400, "PUT /api/auth/password rejects new password under 8 characters");
+
+    // 14.4.3 Succeeds with valid current and new password
+    const changePassRes = await request("/api/auth/password", {
+      method: "PUT",
+      headers: { Cookie: studentCookie },
+      body: JSON.stringify({
+        currentPassword: "Password123!",
+        newPassword: "BrandNewPassword456!",
+      }),
+    });
+    assert(changePassRes.status === 200, "PUT /api/auth/password changes password successfully");
+
+    // 14.4.4 Old password no longer works for login
+    const oldLoginRes = await request("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: studentEmail,
+        password: "Password123!",
+      }),
+    });
+    assert(oldLoginRes.status === 401, "Old password rejected after password change");
+
+    // 14.4.5 New password works for login
+    const newLoginRes = await request("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: studentEmail,
+        password: "BrandNewPassword456!",
+      }),
+    });
+    assert(newLoginRes.status === 200, "New password successfully logs in");
+
+    // 14.4.6 Password change rejected on Google-only accounts
+    const googlePassRes = await request("/api/auth/password", {
+      method: "PUT",
+      headers: { Cookie: googleUserCookie },
+      body: JSON.stringify({
+        currentPassword: "Password123!",
+        newPassword: "BrandNewPassword456!",
+      }),
+    });
+    assert(googlePassRes.status === 400 && googlePassRes.data?.message?.includes("Google Sign-In"), "Google-only account password change safely directed to Google Sign-In");
+
+    // 14.5 Email Verification Flow
+    // 14.5.1 Direct navigation GET returns 405 Method Not Allowed
+    const getVerifyRes = await request("/api/auth/verify-email", { method: "GET" });
+    assert(getVerifyRes.status === 405, "GET /api/auth/verify-email returns 405 Method Not Allowed with guidance");
+
+    // 14.5.2 Verify with invalid token
+    const invalidVerifyTokenRes = await request("/api/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token: "nonexistent-token-abc123" }),
+    });
+    assert(invalidVerifyTokenRes.status === 400, "POST /api/auth/verify-email rejects invalid/expired token");
+
+    // 14.5.3 Create user with known raw verification token and test successful verification
+    const rawVerifyToken = crypto.randomBytes(32).toString("hex");
+    const hashedVerifyToken = crypto.createHash("sha256").update(rawVerifyToken).digest("hex");
+    const verifyTestEmail = `verify_${testStamp}@test.local`;
+    const verifyUser = await User.create({
+      name: "Verify Target",
+      email: verifyTestEmail,
+      passwordHash: await bcrypt.hash("Password123!", 10),
+      isEmailVerified: false,
+      verificationTokenHash: hashedVerifyToken,
+      verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    });
+
+    const validVerifyRes = await request("/api/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token: rawVerifyToken }),
+    });
+    assert(validVerifyRes.status === 200, "POST /api/auth/verify-email succeeds with valid raw token");
+
+    const verifiedUserDb = await User.findById(verifyUser._id).select("+verificationTokenHash");
+    assert(verifiedUserDb.isEmailVerified === true, "User isEmailVerified marked true in database");
+    assert(!verifiedUserDb.verificationTokenHash, "Verification token hash cleared after use (single-use)");
+
+    // 14.5.4 Re-verification attempt fails (token single-use protection)
+    const reusedVerifyRes = await request("/api/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token: rawVerifyToken }),
+    });
+    assert(reusedVerifyRes.status === 400, "Verification token cannot be reused");
+
+    // 14.5.5 Resend verification returns generic message without enumerating
+    const resendRes = await request("/api/auth/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email: verifyTestEmail }),
+    });
+    assert(resendRes.status === 200, "POST /api/auth/resend-verification responds 200");
+    assert(resendRes.data?.message?.includes("matches that email"), "Resend verification message avoids account enumeration");
+
+    // 14.6 Password Recovery (Forgot Password & Reset Password)
+    // 14.6.1 Direct navigation GET returns 405 Method Not Allowed
+    const getForgotRes = await request("/api/auth/forgot-password", { method: "GET" });
+    assert(getForgotRes.status === 405, "GET /api/auth/forgot-password returns 405 Method Not Allowed");
+    const getResetRes = await request("/api/auth/reset-password", { method: "GET" });
+    assert(getResetRes.status === 405, "GET /api/auth/reset-password returns 405 Method Not Allowed");
+
+    // 14.6.2 Forgot password with non-existent email returns generic success (prevents enumeration)
+    const forgotNonExistentRes = await request("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email: `nonexistent_${testStamp}@nowhere.com` }),
+    });
+    assert(forgotNonExistentRes.status === 200, "POST /api/auth/forgot-password returns 200 for non-existent email");
+    assert(forgotNonExistentRes.data?.message?.includes("matches that email"), "Forgot password avoids account enumeration for non-existent email");
+
+    // 14.6.3 Forgot password for Google-only account returns generic success
+    const forgotGoogleRes = await request("/api/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email: googleStudentEmail }),
+    });
+    assert(forgotGoogleRes.status === 200, "POST /api/auth/forgot-password returns 200 for Google-only account without revealing auth method");
+
+    // 14.6.4 Reset password with invalid token fails
+    const invalidResetRes = await request("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({
+        token: "invalid-reset-token-xyz789",
+        newPassword: "BrandNewResetPass99!",
+      }),
+    });
+    assert(invalidResetRes.status === 400, "POST /api/auth/reset-password rejects invalid/expired token");
+
+    // 14.6.5 Reset password with valid token updates password and invalidates token
+    const rawResetToken = crypto.randomBytes(32).toString("hex");
+    const hashedResetToken = crypto.createHash("sha256").update(rawResetToken).digest("hex");
+    const resetTestEmail = `reset_${testStamp}@test.local`;
+    const resetUser = await User.create({
+      name: "Reset Target",
+      email: resetTestEmail,
+      passwordHash: await bcrypt.hash("InitialPass123!", 10),
+      isEmailVerified: true,
+      resetPasswordTokenHash: hashedResetToken,
+      resetPasswordTokenExpires: new Date(Date.now() + 30 * 60 * 1000),
+    });
+
+    const validResetRes = await request("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({
+        token: rawResetToken,
+        newPassword: "BrandNewResetPass99!",
+      }),
+    });
+    assert(validResetRes.status === 200, "POST /api/auth/reset-password succeeds with valid token");
+
+    // Verify DB has cleared reset token fields
+    const resetUserDb = await User.findById(resetUser._id).select("+resetPasswordTokenHash +resetPasswordTokenExpires");
+    assert(!resetUserDb.resetPasswordTokenHash, "Reset password token hash cleared after use");
+
+    // 14.6.6 Reusing reset token fails
+    const reusedResetRes = await request("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({
+        token: rawResetToken,
+        newPassword: "AnotherPassAttempt1!",
+      }),
+    });
+    assert(reusedResetRes.status === 400, "Reset token cannot be reused after successful password reset");
+
+    // 14.6.7 New password works to log in
+    const resetLoginRes = await request("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: resetTestEmail,
+        password: "BrandNewResetPass99!",
+      }),
+    });
+    assert(resetLoginRes.status === 200, "New password after reset logs in successfully");
+
     // Clean up test documents
     console.log("\nCleaning up test records...");
-    await User.deleteMany({ email: { $in: [studentEmail, instructorEmail, instructor2Email, googleStudentEmail, existingLocalEmail] } });
+    await User.deleteMany({ email: { $in: [studentEmail, instructorEmail, instructor2Email, googleStudentEmail, existingLocalEmail, verifyTestEmail, resetTestEmail] } });
     await XPTransaction.deleteMany({ student: studentUser._id });
     await CoinTransaction.deleteMany({ student: studentUser._id });
     await UserAchievement.deleteMany({ student: studentUser._id });

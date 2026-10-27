@@ -113,7 +113,7 @@ function getStatus(course) {
   return 'not-started'
 }
 
-export default function CourseSection() {
+export default function CourseSection({ onCourseSelected } = {}) {
   const navigate = useNavigate()
 
   const [activeFilter, setActiveFilter] = useState('ongoing')
@@ -211,7 +211,11 @@ export default function CourseSection() {
       return
     }
 
-    navigate(`/courses/${course.id}`)
+    if (onCourseSelected) {
+      onCourseSelected(course)
+    } else {
+      navigate(`/courses/${course.id}`)
+    }
   }
 
   return (
@@ -276,14 +280,13 @@ export default function CourseSection() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div className="lc-courses-search-bar">
           <Search size={15} color="#94a3b8" />
           <input
             type="text"
             placeholder="Search courses..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.85rem', width: '130px' }}
           />
         </div>
 

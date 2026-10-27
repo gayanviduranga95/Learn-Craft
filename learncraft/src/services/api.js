@@ -82,6 +82,44 @@ export const authApi = {
     request("/auth/logout", {
       method: "POST",
     }),
+
+  getProfile: () => request("/auth/profile"),
+
+  updateProfile: (profileData) =>
+    request("/auth/profile", {
+      method: "PUT",
+      body: JSON.stringify(profileData),
+    }),
+
+  changePassword: (passwordData) =>
+    request("/auth/password", {
+      method: "PUT",
+      body: JSON.stringify(passwordData),
+    }),
+
+  verifyEmail: (token) =>
+    request("/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
+
+  resendVerification: (email) =>
+    request("/auth/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  forgotPassword: (email) =>
+    request("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: ({ token, password, confirmPassword }) =>
+    request("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password, confirmPassword }),
+    }),
 };
 
 export const courseApi = {

@@ -317,3 +317,60 @@
 .lc-quiz-review-detail strong {
   color: #cbd5e1;
 }
+
+@media (max-width: 600px) {
+  .lc-quiz-overlay {
+    padding: 10px;
+  }
+
+  .lc-quiz-container {
+    max-height: 94vh;
+    border-radius: 16px;
+  }
+
+  .lc-quiz-header {
+    padding: 14px 16px;
+  }
+
+  .lc-quiz-header-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .lc-quiz-body {
+    padding: 16px 14px;
+  }
+
+  .lc-quiz-footer {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .lc-quiz-btn {
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+
+  .lc-quiz-option {
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    gap: 10px;
+  }
+
+  .lc-quiz-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .lc-quiz-stat-box {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .lc-quiz-stat-box strong {
+    font-size: 1.2rem;
+  }
+}

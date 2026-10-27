@@ -534,3 +534,106 @@
     transition: none;
   }
 }
+
+/* ==========================================
+   DARK THEME OVERRIDES FOR WELCOME BANNER
+   ========================================== */
+[data-theme="dark"] .lc-hero,
+.dark .lc-hero {
+  border-color: #1e293b !important;
+  background:
+    radial-gradient(
+      ellipse at 82% 48%,
+      rgba(0, 195, 239, 0.12),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 25% 75%,
+      rgba(8, 124, 255, 0.14),
+      transparent 55%
+    ),
+    linear-gradient(
+      115deg,
+      #0b1329 0%,
+      #0f1b38 52%,
+      #091124 100%
+    ) !important;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .lc-hero-background-glow,
+.dark .lc-hero-background-glow {
+  background: radial-gradient(circle, rgba(0, 195, 239, 0.15) 0%, transparent 70%) !important;
+}
+
+[data-theme="dark"] .lc-hero h1,
+.dark .lc-hero h1 {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .lc-hero-name,
+.dark .lc-hero-name {
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .lc-hero-description,
+.dark .lc-hero-description {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .lc-hero-goal,
+.dark .lc-hero-goal {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+
+[data-theme="dark"] .lc-hero-goal-icon,
+.dark .lc-hero-goal-icon {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .lc-hero-goal-copy strong,
+.dark .lc-hero-goal-copy strong {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .lc-hero-goal-copy span,
+.dark .lc-hero-goal-copy span {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .lc-hero-goal-progress-track,
+.dark .lc-hero-goal-progress-track {
+  background: #334155 !important;
+}
+
+[data-theme="dark"] .lc-hero-feature,
+.dark .lc-hero-feature {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .lc-hero-feature:hover,
+.dark .lc-hero-feature:hover {
+  background: #334155 !important;
+  border-color: #38bdf8 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .lc-hero-feature-icon,
+.dark .lc-hero-feature-icon {
+  background: #0f172a !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .lc-hero-tagline,
+.dark .lc-hero-tagline {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+

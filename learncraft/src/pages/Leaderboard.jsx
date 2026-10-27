@@ -18,6 +18,7 @@ export default function Leaderboard() {
   const [userRank, setUserRank] = useState(null)
   const [loading, setLoading] = useState(true)
   const [gamification, setGamification] = useState(null)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   useEffect(() => {
     gamificationApi.getProfile().then((res) => {
@@ -57,6 +58,8 @@ export default function Leaderboard() {
       <Sidebar
         gamificationData={gamification}
         totalLessonsDone={gamification?.stats?.lessonsCompleted || 0}
+        isOpen={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
       />
 
       <main className="dashboard-main">
@@ -64,6 +67,8 @@ export default function Leaderboard() {
           coins={gamification?.coins || 0}
           streak={gamification?.streak?.current || 0}
           equippedFrame={gamification?.equippedFrame}
+          onToggleMobileNav={() => setMobileNavOpen((v) => !v)}
+          isMobileNavOpen={mobileNavOpen}
         />
 
         <div className="dashboard-content leaderboard-content">

@@ -25,6 +25,7 @@ export default function Arcade() {
   const [activeTab, setActiveTab] = useState('quiz-rush') // 'quiz-rush' | 'memory-match'
   const [gamification, setGamification] = useState(null)
   const [rewardNotification, setRewardNotification] = useState(null)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   // Quiz Rush State
   const [qrState, setQrState] = useState('lobby') // 'lobby' | 'playing' | 'result'
@@ -282,6 +283,8 @@ export default function Arcade() {
       <Sidebar
         gamificationData={gamification}
         totalLessonsDone={gamification?.stats?.lessonsCompleted || 0}
+        isOpen={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
       />
 
       <main className="dashboard-main">
@@ -289,6 +292,8 @@ export default function Arcade() {
           coins={gamification?.coins || 0}
           streak={gamification?.streak?.current || 0}
           equippedFrame={gamification?.equippedFrame}
+          onToggleMobileNav={() => setMobileNavOpen((v) => !v)}
+          isMobileNavOpen={mobileNavOpen}
         />
 
         <div className="dashboard-content arcade-content">

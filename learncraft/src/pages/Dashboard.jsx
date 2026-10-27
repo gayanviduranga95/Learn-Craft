@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [showQuizModal, setShowQuizModal] = useState(false)
   const [quizCourseId, setQuizCourseId] = useState(null)
   const [certMessage, setCertMessage] = useState('')
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -131,6 +132,8 @@ export default function Dashboard() {
       <Sidebar
         gamificationData={gamification}
         totalLessonsDone={totalLessonsDone}
+        isOpen={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
       />
 
       <main className="dashboard-main">
@@ -138,6 +141,8 @@ export default function Dashboard() {
           coins={gamification?.coins || 0}
           streak={gamification?.streak?.current || 0}
           equippedFrame={gamification?.equippedFrame}
+          onToggleMobileNav={() => setMobileNavOpen((v) => !v)}
+          isMobileNavOpen={mobileNavOpen}
         />
 
         <div className="dashboard-content">

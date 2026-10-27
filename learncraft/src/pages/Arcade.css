@@ -743,3 +743,199 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+@media (max-width: 480px) {
+  .arcade-banner {
+    padding: 20px 16px;
+    gap: 16px;
+    border-radius: 16px;
+  }
+
+  .arcade-banner-text h1 {
+    font-size: 1.5rem;
+  }
+
+  .arcade-tab-btn {
+    min-height: 44px;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+  }
+
+  .mm-grid.grid-12,
+  .mm-grid.grid-16,
+  .mm-grid.grid-20 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .mm-card {
+    height: 95px;
+  }
+
+  .mm-card-front,
+  .mm-card-back {
+    padding: 8px 6px;
+  }
+
+  .mm-card-back p {
+    font-size: 0.72rem;
+  }
+
+  .qr-option-btn {
+    min-height: 48px;
+    padding: 12px 14px;
+  }
+
+  .qr-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .qr-actions button,
+  .qr-actions a {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+}
+
+/* ========================================================
+   DARK MODE OVERRIDES FOR ARCADE
+   ======================================================== */
+[data-theme="dark"] .arcade-page,
+.dark .arcade-page {
+  background: #070d1e !important;
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .arcade-banner,
+.dark .arcade-banner {
+  background:
+    radial-gradient(ellipse at 83% 50%, rgba(0, 195, 239, 0.12) 0, transparent 40%),
+    linear-gradient(115deg, #0b1329 0%, #0f1b38 52%, #091124 100%) !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .arcade-banner-text h1,
+.dark .arcade-banner-text h1 {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .arcade-banner-text p,
+.dark .arcade-banner-text p {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .arcade-stats-card,
+.dark .arcade-stats-card {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+
+[data-theme="dark"] .arcade-stat-item strong,
+.dark .arcade-stat-item strong {
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .arcade-tabs,
+.dark .arcade-tabs {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+}
+
+[data-theme="dark"] .arcade-tab,
+.dark .arcade-tab {
+  color: #8b9bb4 !important;
+}
+
+[data-theme="dark"] .arcade-tab.active,
+.dark .arcade-tab.active {
+  background: #1e293b !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .arcade-lobby-card,
+.dark .arcade-lobby-card {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="dark"] .arcade-lobby-card h2,
+.dark .arcade-lobby-card h2 {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .arcade-lobby-card p,
+.dark .arcade-lobby-card p {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .difficulty-card,
+.dark .difficulty-card {
+  background: #070d1e !important;
+  border-color: #1a2c52 !important;
+}
+
+[data-theme="dark"] .difficulty-card strong,
+.dark .difficulty-card strong {
+  color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .difficulty-card.selected,
+.dark .difficulty-card.selected {
+  border-color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.1) !important;
+}
+
+[data-theme="dark"] .qr-active-card,
+.dark .qr-active-card,
+[data-theme="dark"] .qr-result-card,
+.dark .qr-result-card,
+[data-theme="dark"] .mm-active-card,
+.dark .mm-active-card {
+  background: #0c1836 !important;
+  border-color: #1a2c52 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="dark"] .qr-question-box,
+.dark .qr-question-box {
+  background: #070d1e !important;
+  border-color: #1a2c52 !important;
+}
+
+[data-theme="dark"] .qr-question-text,
+.dark .qr-question-text {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .qr-option,
+.dark .qr-option {
+  background: #070d1e !important;
+  border-color: #1a2c52 !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .qr-option:hover:not(:disabled),
+.dark .qr-option:hover:not(:disabled) {
+  background: #112247 !important;
+  border-color: #38bdf8 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .arcade-secondary-btn,
+.dark .arcade-secondary-btn {
+  background: #070d1e !important;
+  border-color: #1a2c52 !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .arcade-secondary-btn:hover,
+.dark .arcade-secondary-btn:hover {
+  background: #112247 !important;
+}
+

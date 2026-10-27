@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Eye,
   EyeOff,
@@ -13,6 +13,7 @@ import {
   Trophy,
   ChartNoAxesColumnIncreasing,
   Sparkles,
+  CheckCircle2,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import GoogleSignInButton from '../components/auth/GoogleSignInButton'
@@ -50,6 +51,7 @@ const features = [
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login, googleLogin } = useAuth()
 
   const [role, setRole] = useState('Student')
@@ -206,6 +208,13 @@ export default function Login() {
               </div>
             </div>
 
+            {location.state?.registrationSuccess && (
+              <div style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#16a34a', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '10px', padding: '12px 16px', marginBottom: '18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={18} />
+                <span>Account created! A verification link has been sent to your email. You can sign in below.</span>
+              </div>
+            )}
+
             <div
               className="role-tabs"
               role="tablist"
@@ -282,14 +291,13 @@ export default function Login() {
                   />
                   <span>Remember me</span>
                 </label>
-                <button
-                  type="button"
+                <Link
+                  to="/forgot-password"
                   className="link-button"
                   style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--brand-primary, #6366f1)', cursor: 'pointer', textDecoration: 'none' }}
-                  onClick={() => alert('Password reset is not yet configured. Please contact your administrator.')}
                 >
                   Forgot password?
-                </button>
+                </Link>
               </div>
 
               {error && (

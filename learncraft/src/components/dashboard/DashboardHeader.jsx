@@ -10,17 +10,34 @@ import {
   GraduationCap,
   Coins,
   Flame,
+  User,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import ThemeToggle from '../common/ThemeToggle'
 
-export default function DashboardHeader({ coins = 0, streak = 0, equippedFrame = 'default' }) {
+export default function DashboardHeader({
+  coins = 0,
+  streak = 0,
+  equippedFrame = 'default',
+  onToggleMobileNav,
+  isMobileNavOpen = false,
+}) {
   const navigate = useNavigate()
   const { user, logout, isInstructor } = useAuth()
 
   const [search, setSearch] = useState('')
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false)
+
+  const isMenuOpen = onToggleMobileNav ? isMobileNavOpen : internalMobileOpen
+  const handleToggleMenu = () => {
+    if (onToggleMobileNav) {
+      onToggleMobileNav()
+    } else {
+      setInternalMobileOpen((prev) => !prev)
+    }
+  }
 
   const handleSignOut = async () => {
     await logout()
@@ -34,10 +51,11 @@ export default function DashboardHeader({ coins = 0, streak = 0, equippedFrame =
       <button
         type="button"
         className="lc-mobile-menu"
-        aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-        onClick={() => setMobileMenuOpen((current) => !current)}
+        aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+        aria-expanded={isMenuOpen}
+        onClick={handleToggleMenu}
       >
-        {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
 
       <div className="lc-header-search">
@@ -112,6 +130,9 @@ export default function DashboardHeader({ coins = 0, streak = 0, equippedFrame =
           </button>
         )}
 
+        {/* Global Theme Toggle */}
+        <ThemeToggle />
+
         <div className="lc-header-popover">
           <button
             type="button"
@@ -131,6 +152,11 @@ export default function DashboardHeader({ coins = 0, streak = 0, equippedFrame =
             <div className="lc-popover">
               <strong>Notifications</strong>
               <p>Welcome to LearnCraft! Complete your courses to earn official certificates and test your skills with quizzes.</p>
+              {user && user.isEmailVerified === false && (
+                <div style={{ marginTop: '10px', padding: '8px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)', color: '#dc2626', fontSize: '12px' }}>
+                  Your email is unverified. <span onClick={() => { setNotificationsOpen(false); navigate('/profile'); }} style={{ textDecoration: 'underline', cursor: 'pointer', fontWeight: 700 }}>Verify in Profile</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -145,22 +171,55 @@ export default function DashboardHeader({ coins = 0, streak = 0, equippedFrame =
               setNotificationsOpen(false)
             }}
           >
-            <span className="lc-avatar">{initial}</span>
+            <span className="lc-avatar">
+              {user?.avatar && (user.avatar.startsWith('http') || user.avatar.startsWith('/')) ? (
+                <img src={user.avatar} alt={user?.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              ) : user?.avatar ? (
+                <span>{user.avatar}</span>
+              ) : (
+                initial
+              )}
+            </span>
             <span className="lc-profile-text">
               <strong>{user?.name || 'Student'}</strong>
-              <small style={{ textTransform: 'capitalize' }}>{user?.role || 'Learner'}</small>
+              <small style={{ textTransform: 'capitalize' }}>
+                {user?.role || 'Learner'} {user && user.isEmailVerified === false && '• Unverified'}
+              </small>
             </span>
             <ChevronDown size={17} />
           </button>
 
           {profileOpen && (
             <div className="lc-profile-menu">
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileOpen(false)
+                  navigate('/profile')
+                }}
+              >
+                <User size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                My Profile &amp; Settings
+              </button>
+
               {isInstructor && (
-                <button type="button" onClick={() => navigate('/instructor')}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false)
+                    navigate('/instructor')
+                  }}
+                >
+                  <GraduationCap size={14} style={{ display: 'inline', marginRight: '6px' }} />
                   Instructor Studio
                 </button>
               )}
-              <button type="button" onClick={handleSignOut} style={{ color: '#ef4444' }}>
+
+              <button
+                type="button"
+                onClick={handleSignOut}
+                style={{ color: '#ef4444' }}
+              >
                 <LogOut size={14} style={{ display: 'inline', marginRight: '6px' }} />
                 Sign out
               </button>
@@ -168,12 +227,6 @@ export default function DashboardHeader({ coins = 0, streak = 0, equippedFrame =
           )}
         </div>
       </div>
-
-      {mobileMenuOpen && (
-        <div className="lc-mobile-menu-note">
-          Use the dashboard navigation to explore your learning sections.
-        </div>
-      )}
     </header>
   )
 }
