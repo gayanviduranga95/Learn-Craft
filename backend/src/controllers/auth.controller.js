@@ -177,6 +177,13 @@ export async function register(req, res) {
       verificationTokenExpires,
     });
 
+    const baseUrl = process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    const primaryBaseUrl = baseUrl.split(",")[0].trim().replace(/\/+$/, "");
+    const devVerificationUrl = `${primaryBaseUrl}/verify-email?token=${encodeURIComponent(verificationToken)}`;
+
+    let emailDelivered = true;
+    let emailDeliveryError = null;
+
     // 6. Send verification email via configured provider or safe mock.
     try {
       await sendVerificationEmail({
@@ -184,8 +191,12 @@ export async function register(req, res) {
         name: user.name,
         token: verificationToken,
       });
+      console.log(`[Auth] Verification email successfully dispatched to <${user.email}>.`);
     } catch (emailErr) {
-      console.warn("Verification email dispatch warning:", emailErr.message);
+      emailDelivered = false;
+      emailDeliveryError = emailErr.message;
+      console.warn(`[Auth] Verification email dispatch warning for <${user.email}>:`, emailErr.message);
+      console.log(`🔗 [LearnCraft Dev Verification Link]: ${devVerificationUrl}`);
     }
 
     // 7. Return safe user details only.
@@ -202,6 +213,13 @@ export async function register(req, res) {
           createdAt: user.createdAt,
         },
         requiresEmailVerification: true,
+        emailDelivered,
+        ...(process.env.NODE_ENV !== "production"
+          ? {
+              devVerificationUrl,
+              emailWarning: !emailDelivered ? emailDeliveryError : undefined,
+            }
+          : {}),
       },
     });
   } catch (error) {
@@ -286,7 +304,7 @@ export async function login(req, res) {
           role: user.role,
           avatar: user.avatar,
           authProvider: user.authProvider,
-          isEmailVerified: user.isEmailVerified !== false,
+          isEmailVerified: user.authProvider === "google" || user.isEmailVerified === true,
           themePreference: user.themePreference || "system",
         },
       },
@@ -501,7 +519,7 @@ export async function getMe(req, res) {
           role: user.role,
           avatar: user.avatar,
           authProvider: user.authProvider,
-          isEmailVerified: user.isEmailVerified !== false,
+          isEmailVerified: user.authProvider === "google" || user.isEmailVerified === true,
           themePreference: user.themePreference || "system",
           createdAt: user.createdAt,
         },
@@ -558,7 +576,7 @@ export async function getProfile(req, res) {
           role: user.role,
           avatar: user.avatar,
           authProvider: user.authProvider,
-          isEmailVerified: user.isEmailVerified !== false,
+          isEmailVerified: user.authProvider === "google" || user.isEmailVerified === true,
           themePreference: user.themePreference || "system",
           xp: user.xp || 0,
           lifetimeXp: user.lifetimeXp || 0,
@@ -847,8 +865,18 @@ export async function resendVerification(req, res) {
     }
 
     const user = await User.findOne({ email: cleanEmail });
-    if (!user || user.isEmailVerified) {
+    if (!user) {
       return res.status(200).json(genericResponse);
+    }
+
+    if (user.isEmailVerified || user.authProvider === "google") {
+      return res.status(200).json({
+        ...genericResponse,
+        alreadyVerified: true,
+        message: req.auth
+          ? "Your email address is already verified! You can sign in directly."
+          : genericResponse.message,
+      });
     }
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
@@ -856,17 +884,37 @@ export async function resendVerification(req, res) {
     user.verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     await user.save();
 
+    const baseUrl = process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || "http://localhost:5173";
+    const primaryBaseUrl = baseUrl.split(",")[0].trim().replace(/\/+$/, "");
+    const devVerificationUrl = `${primaryBaseUrl}/verify-email?token=${encodeURIComponent(verificationToken)}`;
+
+    let emailDelivered = true;
+    let emailDeliveryError = null;
+
     try {
       await sendVerificationEmail({
         to: user.email,
         name: user.name,
         token: verificationToken,
       });
+      console.log(`[Auth] Resend verification email successfully dispatched to <${user.email}>.`);
     } catch (err) {
-      console.warn("Failed to dispatch resend verification email:", err.message);
+      emailDelivered = false;
+      emailDeliveryError = err.message;
+      console.warn("[Auth] Failed to dispatch resend verification email:", err.message);
+      console.log(`🔗 [LearnCraft Dev Verification Link]: ${devVerificationUrl}`);
     }
 
-    return res.status(200).json(genericResponse);
+    return res.status(200).json({
+      ...genericResponse,
+      emailDelivered,
+      ...(process.env.NODE_ENV !== "production"
+        ? {
+            devVerificationUrl,
+            emailWarning: !emailDelivered ? emailDeliveryError : undefined,
+          }
+        : {}),
+    });
   } catch (error) {
     console.error("Resend verification error:", error.message);
     return res.status(500).json({

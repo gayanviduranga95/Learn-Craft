@@ -69,7 +69,13 @@ export default function VerifyEmail() {
     setResendNotice("");
     try {
       const res = await authApi.resendVerification(resendEmail.trim());
-      setResendNotice(res.message || "If an account exists, a new verification link was sent.");
+      if (res.alreadyVerified) {
+        setResendNotice("This account is already verified! You can sign in directly.");
+      } else if (res.devVerificationUrl) {
+        setResendNotice("Verification link created! You can use this link to verify: " + res.devVerificationUrl);
+      } else {
+        setResendNotice(res.message || "If an account exists, a new verification link was sent.");
+      }
       setResendEmail("");
     } catch {
       setResendNotice("If an account exists, a new verification link was sent.");

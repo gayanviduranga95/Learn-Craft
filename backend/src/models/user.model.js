@@ -108,6 +108,12 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.pre("save", function () {
+  if (this.authProvider === "google") {
+    this.isEmailVerified = true;
+  }
+});
+
 const User = mongoose.model("User", userSchema);
 
 export default User;

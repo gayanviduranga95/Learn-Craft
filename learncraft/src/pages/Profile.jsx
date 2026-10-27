@@ -187,8 +187,18 @@ export default function Profile() {
 
     try {
       const res = await authApi.resendVerification(profileData?.email || user?.email);
-      setVerificationNotice(res.message || "Verification email sent! Please check your inbox.");
-      setTimeout(() => setVerificationNotice(""), 6000);
+      if (res.alreadyVerified) {
+        setVerificationNotice("Your email address is already verified!");
+        setProfileData((prev) => ({ ...prev, isEmailVerified: true }));
+        if (refreshUser) refreshUser();
+      } else if (res.devVerificationUrl) {
+        setVerificationNotice(
+          `Verification link generated! ${res.emailWarning ? "(Delivery warning: " + res.emailWarning + ")" : ""}`
+        );
+      } else {
+        setVerificationNotice(res.message || "Verification email sent! Please check your inbox.");
+      }
+      setTimeout(() => setVerificationNotice(""), 8000);
     } catch (err) {
       setVerificationError(err.message || "Failed to resend verification email.");
     } finally {
@@ -205,7 +215,7 @@ export default function Profile() {
     : "Active Learner";
 
   const isGoogleAccount = profileData?.authProvider === "google";
-  const isVerified = profileData?.isEmailVerified;
+  const isVerified = isGoogleAccount || Boolean(profileData?.isEmailVerified);
   const initial = name ? name.charAt(0).toUpperCase() : "U";
 
   return (
